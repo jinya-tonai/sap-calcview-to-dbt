@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fixture reconstructed from the public openSAP sample
+     com.sap.openSAP.hana5.example / SALES_ORDER_WORKLIST.hdbcalculationview
+     (GitHub, commit 46a9098). Structure, ids, mappings and join attributes
+     follow the original; whitespace/descriptions condensed. -->
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" id="sap.hana.democontent.epm.models::SALES_ORDER_WORKLIST" applyPrivilegeType="NONE" dataCategory="DEFAULT" dimensionType="" schemaVersion="3.0" defaultClient="$$client$$" visibility="internal" outputViewType="Projection" calculationScenarioType="TREE_BASED" enforceSqlExecution="false">
+  <descriptions defaultDescription="SALES_ORDER_WORKLIST"/>
+  <localVariables/>
+  <variableMappings/>
+  <dataSources>
+    <DataSource id="SO.Header">
+      <resourceUri>SO.Header</resourceUri>
+    </DataSource>
+    <DataSource id="SO.Item">
+      <resourceUri>SO.Item</resourceUri>
+    </DataSource>
+    <DataSource id="sap.hana.democontent.epm.models::PROD">
+      <resourceUri>sap.hana.democontent.epm.models::PROD</resourceUri>
+    </DataSource>
+    <DataSource id="sap.hana.democontent.epm.models::BUYER">
+      <resourceUri>sap.hana.democontent.epm.models::BUYER</resourceUri>
+    </DataSource>
+  </dataSources>
+  <calculationViews>
+    <calculationView xsi:type="Calculation:JoinView" id="Sales" joinType="inner">
+      <viewAttributes>
+        <viewAttribute id="SALESORDERID"/>
+        <viewAttribute id="PARTNERID"/>
+        <viewAttribute id="LIFECYCLESTATUS"/>
+        <viewAttribute id="CURRENCY"/>
+        <viewAttribute id="GROSSAMOUNT"/>
+        <viewAttribute id="SALESORDERITEM"/>
+        <viewAttribute id="PRODUCTID"/>
+        <viewAttribute id="QUANTITY"/>
+        <viewAttribute id="QUANTITYUNIT"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="SO.Header">
+        <mapping xsi:type="Calculation:AttributeMapping" target="SALESORDERID" source="SALESORDERID"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PARTNERID" source="PARTNER.PARTNERID"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="LIFECYCLESTATUS" source="LIFECYCLESTATUS"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="CURRENCY" source="CURRENCY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="GROSSAMOUNT" source="GROSSAMOUNT"/>
+      </input>
+      <input node="SO.Item">
+        <mapping xsi:type="Calculation:AttributeMapping" target="SALESORDERITEM" source="SALESORDERITEM"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PRODUCTID" source="PRODUCT.PRODUCTID"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="QUANTITY" source="QUANTITY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="QUANTITYUNIT" source="QUANTITYUNIT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="SALESORDERID" source="SALESORDERID"/>
+      </input>
+      <joinAttribute name="SALESORDERID"/>
+    </calculationView>
+    <calculationView xsi:type="Calculation:JoinView" id="Product" joinType="inner">
+      <viewAttributes>
+        <viewAttribute id="SALESORDERID"/>
+        <viewAttribute id="PARTNERID"/>
+        <viewAttribute id="LIFECYCLESTATUS"/>
+        <viewAttribute id="CURRENCY"/>
+        <viewAttribute id="GROSSAMOUNT"/>
+        <viewAttribute id="SALESORDERITEM"/>
+        <viewAttribute id="PRODUCTID"/>
+        <viewAttribute id="QUANTITY"/>
+        <viewAttribute id="QUANTITYUNIT"/>
+        <viewAttribute id="TYPECODE"/>
+        <viewAttribute id="CATEGORY"/>
+        <viewAttribute id="PRODUCTNAME"/>
+        <viewAttribute id="PRODUCTDESC"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="Sales">
+        <mapping xsi:type="Calculation:AttributeMapping" target="SALESORDERID" source="SALESORDERID"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PARTNERID" source="PARTNERID"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="LIFECYCLESTATUS" source="LIFECYCLESTATUS"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="CURRENCY" source="CURRENCY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="GROSSAMOUNT" source="GROSSAMOUNT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="SALESORDERITEM" source="SALESORDERITEM"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PRODUCTID" source="PRODUCTID"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="QUANTITY" source="QUANTITY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="QUANTITYUNIT" source="QUANTITYUNIT"/>
+      </input>
+      <input node="sap.hana.democontent.epm.models::PROD">
+        <mapping xsi:type="Calculation:AttributeMapping" target="TYPECODE" source="PRODUCT_TYPECODE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="CATEGORY" source="PRODUCT_CATEGORY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PRODUCTNAME" source="PRODUCT_NAME"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PRODUCTDESC" source="PRODUCT_DESCRIPTION"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PRODUCTID" source="PRODUCTID"/>
+      </input>
+      <joinAttribute name="PRODUCTID"/>
+    </calculationView>
+    <calculationView xsi:type="Calculation:JoinView" id="Partner" joinType="inner">
+      <viewAttributes>
+        <viewAttribute id="SALESORDERID"/>
+        <viewAttribute id="PARTNERID"/>
+        <viewAttribute id="LIFECYCLESTATUS"/>
+        <viewAttribute id="CURRENCY"/>
+        <viewAttribute id="GROSSAMOUNT"/>
+        <viewAttribute id="SALESORDERITEM"/>
+        <viewAttribute id="PRODUCTID"/>
+        <viewAttribute id="QUANTITY"/>
+        <viewAttribute id="QUANTITYUNIT"/>
+        <viewAttribute id="TYPECODE"/>
+        <viewAttribute id="CATEGORY"/>
+        <viewAttribute id="PRODUCTNAME"/>
+        <viewAttribute id="PRODUCTDESC"/>
+        <viewAttribute id="COMPANYNAME"/>
+        <viewAttribute id="CITY"/>
+        <viewAttribute id="POSTALCODE"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="Product">
+        <mapping xsi:type="Calculation:AttributeMapping" target="SALESORDERID" source="SALESORDERID"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PARTNERID" source="PARTNERID"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="LIFECYCLESTATUS" source="LIFECYCLESTATUS"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="CURRENCY" source="CURRENCY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="GROSSAMOUNT" source="GROSSAMOUNT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="SALESORDERITEM" source="SALESORDERITEM"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PRODUCTID" source="PRODUCTID"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="QUANTITY" source="QUANTITY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="QUANTITYUNIT" source="QUANTITYUNIT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="TYPECODE" source="TYPECODE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="CATEGORY" source="CATEGORY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PRODUCTNAME" source="PRODUCTNAME"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PRODUCTDESC" source="PRODUCTDESC"/>
+      </input>
+      <input node="sap.hana.democontent.epm.models::BUYER">
+        <mapping xsi:type="Calculation:AttributeMapping" target="COMPANYNAME" source="COMPANYNAME"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="CITY" source="CITY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="POSTALCODE" source="POSTALCODE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PARTNERID" source="PARTNERID"/>
+      </input>
+      <joinAttribute name="PARTNERID"/>
+    </calculationView>
+  </calculationViews>
+  <logicalModel id="Partner">
+    <attributes>
+      <attribute id="SALESORDERID" key="true" order="1"><keyMapping columnObjectName="Partner" columnName="SALESORDERID"/></attribute>
+      <attribute id="PARTNERID" order="2"><keyMapping columnObjectName="Partner" columnName="PARTNERID"/></attribute>
+      <attribute id="LIFECYCLESTATUS" order="3"><keyMapping columnObjectName="Partner" columnName="LIFECYCLESTATUS"/></attribute>
+      <attribute id="CURRENCY" order="4"><keyMapping columnObjectName="Partner" columnName="CURRENCY"/></attribute>
+      <attribute id="GROSSAMOUNT" order="5"><keyMapping columnObjectName="Partner" columnName="GROSSAMOUNT"/></attribute>
+      <attribute id="SALESORDERITEM" key="true" order="6"><keyMapping columnObjectName="Partner" columnName="SALESORDERITEM"/></attribute>
+      <attribute id="PRODUCTID" order="7"><keyMapping columnObjectName="Partner" columnName="PRODUCTID"/></attribute>
+      <attribute id="QUANTITY" order="8"><keyMapping columnObjectName="Partner" columnName="QUANTITY"/></attribute>
+      <attribute id="QUANTITYUNIT" order="9"><keyMapping columnObjectName="Partner" columnName="QUANTITYUNIT"/></attribute>
+      <attribute id="TYPECODE" order="10"><keyMapping columnObjectName="Partner" columnName="TYPECODE"/></attribute>
+      <attribute id="CATEGORY" order="11"><keyMapping columnObjectName="Partner" columnName="CATEGORY"/></attribute>
+      <attribute id="PRODUCTNAME" order="12"><keyMapping columnObjectName="Partner" columnName="PRODUCTNAME"/></attribute>
+      <attribute id="PRODUCTDESC" order="13"><keyMapping columnObjectName="Partner" columnName="PRODUCTDESC"/></attribute>
+      <attribute id="COMPANYNAME" order="14"><keyMapping columnObjectName="Partner" columnName="COMPANYNAME"/></attribute>
+      <attribute id="CITY" order="15"><keyMapping columnObjectName="Partner" columnName="CITY"/></attribute>
+      <attribute id="POSTALCODE" order="16"><keyMapping columnObjectName="Partner" columnName="POSTALCODE"/></attribute>
+    </attributes>
+    <calculatedAttributes/>
+    <baseMeasures/>
+    <calculatedMeasures/>
+    <restrictedMeasures/>
+  </logicalModel>
+</Calculation:scenario>

@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic fixture (NOT a real SAP export).
+     Purpose: exercise every node type the MVP-1 parser must handle
+     (Projection + filter + calculated columns, Join, Aggregation, Union
+     with a constant mapping, Rank, input parameter, logicalModel with
+     baseMeasures / calculatedAttributes / restrictedMeasures).
+     Element patterns follow the real openSAP sample where confirmed
+     (scenario / dataSources / JoinView / mapping / logicalModel).
+     Rank-node detail elements and variableProperties are plausible
+     placeholders: the parser captures them generically on purpose. -->
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" id="bw.repro::CV_SALES_BY_ORG" schemaVersion="3.0" dataCategory="CUBE" outputViewType="Aggregation" defaultClient="$$client$$" calculationScenarioType="TREE_BASED" enforceSqlExecution="true">
+  <descriptions defaultDescription="Sales by org (synthetic BW reproduction target)"/>
+  <localVariables>
+    <variable id="IP_FROM_DATE">
+      <variableProperties datatype="DATE" parameter="true" mandatory="true">
+        <defaultValue>2024-01-01</defaultValue>
+      </variableProperties>
+    </variable>
+  </localVariables>
+  <variableMappings/>
+  <dataSources>
+    <DataSource id="SD.VBAK" type="DATA_BASE_TABLE">
+      <resourceUri>SD.VBAK</resourceUri>
+    </DataSource>
+    <DataSource id="SD.VBAP" type="DATA_BASE_TABLE">
+      <resourceUri>SD.VBAP</resourceUri>
+    </DataSource>
+    <DataSource id="SD.LEGACY" type="DATA_BASE_TABLE">
+      <resourceUri>SD.LEGACY</resourceUri>
+    </DataSource>
+  </dataSources>
+  <calculationViews>
+    <calculationView xsi:type="Calculation:ProjectionView" id="Proj_Header">
+      <viewAttributes>
+        <viewAttribute id="VBELN"/>
+        <viewAttribute id="VKORG"/>
+        <viewAttribute id="ERDAT"/>
+        <viewAttribute id="DAYS_OPEN"/>
+      </viewAttributes>
+      <calculatedViewAttributes>
+        <calculatedViewAttribute id="DAYS_OPEN">
+          <formula>daysbetween(date(&quot;ERDAT&quot;), now())</formula>
+        </calculatedViewAttribute>
+      </calculatedViewAttributes>
+      <input node="SD.VBAK">
+        <mapping xsi:type="Calculation:AttributeMapping" target="VBELN" source="VBELN"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="VKORG" source="VKORG"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ERDAT" source="ERDAT"/>
+      </input>
+      <filter>
+        <expression>&quot;VKORG&quot; = '1000' and &quot;ERDAT&quot; &gt;= $$IP_FROM_DATE$$</expression>
+      </filter>
+    </calculationView>
+    <calculationView xsi:type="Calculation:ProjectionView" id="Proj_Item">
+      <viewAttributes>
+        <viewAttribute id="VBELN"/>
+        <viewAttribute id="MATNR"/>
+        <viewAttribute id="LINE_AMOUNT"/>
+      </viewAttributes>
+      <calculatedViewAttributes>
+        <calculatedViewAttribute id="LINE_AMOUNT">
+          <formula>&quot;KWMENG&quot; * &quot;NETPR&quot;</formula>
+        </calculatedViewAttribute>
+      </calculatedViewAttributes>
+      <input node="SD.VBAP">
+        <mapping xsi:type="Calculation:AttributeMapping" target="VBELN" source="VBELN"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATNR" source="MATNR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="KWMENG" source="KWMENG"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="NETPR" source="NETPR"/>
+      </input>
+    </calculationView>
+    <calculationView xsi:type="Calculation:JoinView" id="Join_Main" joinType="leftOuter">
+      <viewAttributes>
+        <viewAttribute id="VBELN"/>
+        <viewAttribute id="VKORG"/>
+        <viewAttribute id="MATNR"/>
+        <viewAttribute id="LINE_AMOUNT"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="Proj_Header">
+        <mapping xsi:type="Calculation:AttributeMapping" target="VBELN" source="VBELN"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="VKORG" source="VKORG"/>
+      </input>
+      <input node="Proj_Item">
+        <mapping xsi:type="Calculation:AttributeMapping" target="VBELN" source="VBELN"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATNR" source="MATNR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="LINE_AMOUNT" source="LINE_AMOUNT"/>
+      </input>
+      <joinAttribute name="VBELN"/>
+    </calculationView>
+    <calculationView xsi:type="Calculation:AggregationView" id="Agg_Sales">
+      <viewAttributes>
+        <viewAttribute id="VKORG"/>
+        <viewAttribute id="MATNR"/>
+        <viewAttribute id="GROSS" aggregationType="sum"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="Join_Main">
+        <mapping xsi:type="Calculation:AttributeMapping" target="VKORG" source="VKORG"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATNR" source="MATNR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="GROSS" source="LINE_AMOUNT"/>
+      </input>
+    </calculationView>
+    <calculationView xsi:type="Calculation:ProjectionView" id="Proj_Legacy">
+      <viewAttributes>
+        <viewAttribute id="VKORG"/>
+        <viewAttribute id="MATNR"/>
+        <viewAttribute id="GROSS"/>
+        <viewAttribute id="SOURCE_KBN"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="SD.LEGACY">
+        <mapping xsi:type="Calculation:AttributeMapping" target="VKORG" source="VKORG"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATNR" source="MATNR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="GROSS" source="AMOUNT"/>
+        <mapping xsi:type="Calculation:ConstantMapping" target="SOURCE_KBN" constantValue="LEGACY"/>
+      </input>
+    </calculationView>
+    <calculationView xsi:type="Calculation:UnionView" id="Union_All">
+      <viewAttributes>
+        <viewAttribute id="VKORG"/>
+        <viewAttribute id="MATNR"/>
+        <viewAttribute id="GROSS"/>
+        <viewAttribute id="SOURCE_KBN"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="Agg_Sales">
+        <mapping xsi:type="Calculation:AttributeMapping" target="VKORG" source="VKORG"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATNR" source="MATNR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="GROSS" source="GROSS"/>
+        <mapping xsi:type="Calculation:ConstantMapping" target="SOURCE_KBN" constantValue="BW"/>
+      </input>
+      <input node="Proj_Legacy">
+        <mapping xsi:type="Calculation:AttributeMapping" target="VKORG" source="VKORG"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATNR" source="MATNR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="GROSS" source="GROSS"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="SOURCE_KBN" source="SOURCE_KBN"/>
+      </input>
+    </calculationView>
+    <calculationView xsi:type="Calculation:RankView" id="Rank_Top" rankThreshold="10">
+      <viewAttributes>
+        <viewAttribute id="VKORG"/>
+        <viewAttribute id="MATNR"/>
+        <viewAttribute id="GROSS"/>
+        <viewAttribute id="SOURCE_KBN"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="Union_All">
+        <mapping xsi:type="Calculation:AttributeMapping" target="VKORG" source="VKORG"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATNR" source="MATNR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="GROSS" source="GROSS"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="SOURCE_KBN" source="SOURCE_KBN"/>
+      </input>
+      <rankPartition attribute="VKORG"/>
+      <rankOrder attribute="GROSS" direction="descending"/>
+    </calculationView>
+  </calculationViews>
+  <logicalModel id="Rank_Top">
+    <attributes>
+      <attribute id="VKORG" key="true" order="1"><keyMapping columnObjectName="Rank_Top" columnName="VKORG"/></attribute>
+      <attribute id="MATNR" order="2"><keyMapping columnObjectName="Rank_Top" columnName="MATNR"/></attribute>
+      <attribute id="SOURCE_KBN" order="3"><keyMapping columnObjectName="Rank_Top" columnName="SOURCE_KBN"/></attribute>
+    </attributes>
+    <calculatedAttributes>
+      <calculatedAttribute id="GROSS_PER_ITEM">
+        <formula>&quot;GROSS&quot; / 10</formula>
+      </calculatedAttribute>
+    </calculatedAttributes>
+    <baseMeasures>
+      <measure id="GROSS" order="1" aggregationType="sum" measureType="simple">
+        <measureMapping columnObjectName="Rank_Top" columnName="GROSS"/>
+      </measure>
+    </baseMeasures>
+    <calculatedMeasures/>
+    <restrictedMeasures>
+      <measure id="GROSS_BW_ONLY" order="2" aggregationType="sum" measureType="restricted"/>
+    </restrictedMeasures>
+  </logicalModel>
+</Calculation:scenario>
