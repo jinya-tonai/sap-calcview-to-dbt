@@ -1,14 +1,14 @@
 ---
 name: sap-calcview-to-dbt
-description: Parse SAP HANA Graphical Calculation View XML (calculation.xml / .hdbcalculationview exported from HANA Studio) into an intermediate representation and a full inventory — node list, data sources, column-level lineage, expressions, variables/input parameters, and unsupported/manual items — as the first step of reproducing SAP BW/HANA calculation-view logic as dbt models on Snowflake. Use when the user provides or mentions a calculation view XML, asks what a calculation view contains or depends on, or plans a HANA/BW to Snowflake+dbt migration. All processing is local and deterministic; never upload calculation view XML to external converter services.
+description: Parse SAP HANA Graphical Calculation View XML (calculation.xml / .hdbcalculationview exported from HANA Studio) into an intermediate representation and a full inventory — node list, data sources, column-level lineage, expressions, variables/input parameters, and unsupported/manual items — and generate Snowflake SQL (one CTE per node) from it, as the first steps of reproducing SAP BW/HANA calculation-view logic as dbt models on Snowflake. Use when the user provides or mentions a calculation view XML, asks what a calculation view contains or depends on, wants it converted to SQL/dbt, or plans a HANA/BW to Snowflake+dbt migration. All processing is local and deterministic; never upload calculation view XML to external converter services.
 license: MIT
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # SAP Calculation View → dbt（棚卸し）
 
-HANA Studio等から抜いた Graphical Calculation View の XML を、Snowflake + dbt への再現に先立って棚卸しするスキル。現行バージョン（MVP-1）は **パース＋棚卸しまで**。SQL生成は未実装なので、できると言わないこと。
+HANA Studio等から抜いた Graphical Calculation View の XML を、Snowflake + dbt へ再現するためのスキル。現行バージョンは **MVP-2（パース＋棚卸し＋SQL生成）まで**。dbtプロジェクト形式での生成（MVP-3）は未実装なので、できると言わないこと。
 
 ## 原則
 
@@ -40,15 +40,27 @@ HANA Studio等から抜いた Graphical Calculation View の XML を、Snowflake
    - 式の自動化候補率と、未知関数があればその一覧
    - 未対応・手作業アイテムの一覧（件数だけでなく中身）
    - 入力パラメータと、その使用箇所
-5. **次の段階を案内する。** 棚卸しの次はマッピング表（DataSource → 着地テーブル、カラム差分）の確定が前提。それが無い状態でSQL生成に進まない。
+5. **SQLを生成する。**
+
+   ```bash
+   python3 <このスキルのフォルダ>/scripts/calcview_to_sql.py <XMLファイル or フォルダ> --out <出力先> [--mapping mapping.csv]
+   ```
+
+   - ノード = CTE（依存順）、最終SELECTは logicalModel 準拠。**baseMeasureは再集計しない**（仕様 §5.6）。
+   - マッピング表（`datasource_id, sf_database, sf_schema, sf_table`）が無いDataSourceはプレースホルダ名＋TODOで出す。黙って実在しないテーブル名を確定形で出さない。
+   - 式は `scripts/expr_translate.py` が仕様 §7.3 の辞書で変換する。`$$VAR$$` は dbt の `var()`（§6.1既定）。未知関数は原形のまま残り、TODOとして数える。
+   - 生成SQLの冒頭にTODO件数と内訳が出る。報告ではこの件数と中身を必ず添える。
+   - 可能なら sqlglot（Snowflake方言）でパース検証する。`var()` のJinjaは検証時のみリテラルに置換する。
+6. **次の段階を案内する。** dbtプロジェクト生成（`stg_/int_/mart` 分割、sources.yml、テスト生成）はMVP-3で未実装。実データ突合（仕様 §11）はBW側の出力サンプルが要る。
 
 ## リファレンス
 
 - 設計の正本は `references/hanacv2sql-reproduction-spec.md`（HANACV2SQL再現仕様）。ノード変換ルール・式辞書・検証仕様・未対応範囲はすべてここに従う。
-- `examples/` にフィクスチャ2本（公開openSAPサンプルの再構成、全ノード種別を網羅した合成XML）と期待サマリー（`examples/expected/`）がある。パーサを変更したら両フィクスチャで再実行し、サマリーが期待値と一致するか確認する。
+- `examples/` にフィクスチャ2本（公開openSAPサンプルの再構成、全ノード種別を網羅した合成XML）と期待値（`examples/expected/` のサマリー＋生成SQLスナップショット）がある。パーサ／生成器を変更したら両フィクスチャで再実行し、期待値と一致するか確認する。
 
 ## 既知の制限
 
-- SQL / dbt モデルの生成は未実装（仕様 §12 の MVP-2 以降）。
-- Rankノードの詳細要素と変数の `variableProperties` は公開実サンプルで裏取りできていないため、決め打ちせず汎用キャプチャ（IRの `extras` / `rawProperties`）で保持している。実XMLで構造が判明したら固定化する。
-- マッピング表の読み込みは未実装。`datasources.csv` の `mapped_table` は現状すべて空。
+- dbtプロジェクト形式の生成（仕様 §10）は未実装（MVP-3）。現行の出力はCTE連結の単一SQLファイル。
+- Rankは基本対応（`row_number` + しきい値）をMVP-3から前倒しで実装済み。ただしRankノードの詳細要素と変数の `variableProperties` は公開実サンプルで裏取りできていないため、決め打ちせず汎用キャプチャ（IRの `extras` / `rawProperties`）で保持している。実XMLで構造が判明したら固定化する。
+- マッピング表はテーブル対応のみ対応（`calcview_to_sql.py --mapping`）。カラム対応（仕様 §4.2）は未実装で、`datasources.csv` の `mapped_table` はパーサ単体では空のまま。
+- 式辞書は仕様 §7.3 の初期版。`component()` の部品番号対応と `weekday()` の起点補正はTODOフラグ付きで出し、実データ確認が前提。

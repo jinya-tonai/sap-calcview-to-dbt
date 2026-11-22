@@ -25,8 +25,8 @@ SAP BW/HANA の Graphical Calculation View を Snowflake + dbt で再現する�
 
 | Stage | Status |
 |---|---|
-| MVP-1: parser + inventory (this repository) | ✅ Implemented |
-| MVP-2: node → SQL conversion | Planned |
+| MVP-1: parser + inventory | ✅ Implemented |
+| MVP-2: node → SQL conversion (this repository) | ✅ Implemented |
 | MVP-3: dbt project generation | Planned |
 
 Design: [references/hanacv2sql-reproduction-spec.md](references/hanacv2sql-reproduction-spec.md)
@@ -46,10 +46,28 @@ Or just use the parser directly — it only needs Python 3 (stdlib only).
 
 ## Usage
 
+Inventory (MVP-1):
+
 ```bash
 python3 scripts/calcview_parser.py path/to/calculation.xml --out output
 python3 scripts/calcview_parser.py folder/with/views/     --out output
 ```
+
+SQL generation (MVP-2) — one CTE per node, final SELECT per the
+logicalModel (base measures are projected, never re-aggregated):
+
+```bash
+python3 scripts/calcview_to_sql.py path/to/calculation.xml --out output_sql
+# with a mapping table (datasource_id, sf_database, sf_schema, sf_table):
+python3 scripts/calcview_to_sql.py folder/with/views/ --out output_sql --mapping mapping.csv
+```
+
+Expressions are translated per the spec §7.3 dictionary
+(`daysbetween(a, b)` → `datediff(day, a, b)`, `adddays(d, n)` →
+`dateadd(day, n, d)`, `$$IP_X$$` → dbt `var('ip_x', …)`, …).
+Anything unconvertible stays in the SQL as a `-- TODO` header entry —
+never silently dropped. Without a mapping table, data sources use
+placeholder names and are flagged as TODOs.
 
 Output, per view:
 
@@ -79,10 +97,12 @@ output/<VIEW_NAME>/
   Union (with a constant mapping), Rank, an input parameter, and a
   restricted measure (which the parser correctly flags as unsupported).
 
-Expected summaries are in `examples/expected/`. Try it:
+Expected summaries and generated SQL snapshots are in
+`examples/expected/`. Try it:
 
 ```bash
 python3 scripts/calcview_parser.py examples --out output
+python3 scripts/calcview_to_sql.py examples --out output_sql
 ```
 
 ## Repository layout
@@ -90,8 +110,10 @@ python3 scripts/calcview_parser.py examples --out output
 ```
 SKILL.md                  … skill definition (read by agents)
 scripts/calcview_parser.py … the MVP-1 parser (stdlib only)
+scripts/calcview_to_sql.py … the MVP-2 SQL generator (stdlib only)
+scripts/expr_translate.py  … HANA expression → Snowflake translator (spec §7)
 references/               … the reproduction spec (design source of truth)
-examples/                 … fixtures + expected summaries
+examples/                 … fixtures + expected summaries and SQL snapshots
 ```
 
 ## License

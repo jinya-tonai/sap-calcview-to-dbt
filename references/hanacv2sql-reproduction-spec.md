@@ -1,6 +1,6 @@
 # HANACV2SQL再現仕様 ― calculation.xml → Snowflake SQL / dbt 変換器
 
-作成: 2026-11-20（MVP-1実装済み: 2026-11-21、`scripts/calcview_parser.py`、詳細は同フォルダの README）
+作成: 2026-11-20（MVP-1実装済み: 2026-11-21 / MVP-2実装済み: 2026-11-23、`scripts/calcview_parser.py`・`scripts/calcview_to_sql.py`・`scripts/expr_translate.py`、詳細は同フォルダの README）
 位置づけ: HANACV2SQL（外部SaaS）の変換ロジックを、ローカルで動く決定的な変換器として再現するための仕様。
 想定ユースケースは自前構成専用に寄せてある:
 
