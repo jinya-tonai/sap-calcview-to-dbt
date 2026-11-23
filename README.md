@@ -1,5 +1,7 @@
 # sap-calcview-to-dbt
 
+**English** | [日本語](README.ja.md)
+
 An agent skill that parses **SAP HANA Graphical Calculation View** XML
 (`calculation.xml` / `.hdbcalculationview`, as exported from HANA Studio)
 into an intermediate representation and a complete inventory — the first
@@ -115,6 +117,12 @@ scripts/expr_translate.py  … HANA expression → Snowflake translator (spec §
 references/               … the reproduction spec (design source of truth)
 examples/                 … fixtures + expected summaries and SQL snapshots
 ```
+
+## Contributing
+
+Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+Help is especially wanted with real-world expression functions and
+XML structures (synthetic examples only; never commit client XML).
 
 ## License
 
