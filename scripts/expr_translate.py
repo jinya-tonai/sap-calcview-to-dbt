@@ -33,6 +33,11 @@ RENAME = {
     "strlen": "length",
     "if": "iff",
 }
+# Infix operators that can look like function calls when a parenthesised
+# operand follows (`("A"='1') and ("B"='2')`, `"X" in ('A','B')`).
+# They pass through verbatim and are NOT unconverted functions.
+OPERATORS = {"and", "or", "not", "in"}
+
 # component(d, n): part numbers per spec 7.3 note (order is unusual;
 # flagged TODO whenever used so a human confirms against the real view)
 COMPONENT_PARTS = {1: "year", 2: "day", 3: "month", 4: "hour", 5: "minute", 6: "second"}
@@ -147,6 +152,23 @@ class Translator:
 
     def _apply(self, fn: str, args: list[str]) -> str:
         a = args
+        if fn == "in" and len(a) >= 2:
+            # function-style in(x, v1, v2) -> operator form x in (v1, v2)
+            return f"{a[0]} in ({', '.join(a[1:])})"
+        if fn == "not" and len(a) == 1:
+            return f"not ({a[0]})"
+        if fn in OPERATORS:
+            return f"{fn}({', '.join(a)})"
+        if fn == "case" and len(a) >= 3:
+            # HANA calc-engine case(expr, value, result, ..., default?)
+            # -> Snowflake CASE expr WHEN value THEN result ... ELSE d END
+            head, rest = a[0], a[1:]
+            whens = []
+            while len(rest) >= 2:
+                whens.append(f"when {rest[0]} then {rest[1]}")
+                rest = rest[2:]
+            else_sql = f" else {rest[0]}" if rest else ""
+            return f"case {head} {' '.join(whens)}{else_sql} end"
         if fn in PASSTHROUGH:
             return f"{fn}({', '.join(a)})"
         if fn in RENAME:

@@ -51,6 +51,21 @@ def strip_qualifier(source: str | None) -> str:
     return (source or "").rsplit(".", 1)[-1]
 
 
+_PLAIN_IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
+
+def qident(name: str) -> str:
+    """Double-quote an identifier when it is not a plain Snowflake name.
+
+    BW InfoObject names such as 0BASE_UOM_KEY (leading digit),
+    $BIC$EKF0128 or /BIC/ECCH0028 are invalid unquoted in Snowflake.
+    Plain names pass through unchanged.
+    """
+    if _PLAIN_IDENT.match(name) or (name.startswith('"') and name.endswith('"')):
+        return name
+    return '"' + name.replace('"', '""') + '"'
+
+
 class Generator:
     def __init__(self, ir: dict, mapping: dict[str, str]):
         self.ir = ir
@@ -71,18 +86,18 @@ class Generator:
     def ref(self, input_id: str) -> str:
         """FROM-clause target for an input: CTE name or (mapped) table."""
         if input_id in self.nodes:
-            return snake(input_id)
+            return qident(snake(input_id))
         ds = next((d for d in self.ir["dataSources"] if d["id"] == input_id), None)
         if ds is None:
             self.todo(input_id, "unresolved input reference")
-            return snake(input_id)
+            return qident(snake(input_id))
         if input_id in self.mapping:
             return self.mapping[input_id]
         if input_id not in self._unmapped_reported:
             self._unmapped_reported.add(input_id)
             self.todo(input_id, "data source not in mapping table; "
                                 "placeholder table name used")
-        return snake(ds.get("resourceUri") or input_id)
+        return qident(snake(ds.get("resourceUri") or input_id))
 
     def expr(self, formula: str | None, where: str) -> str:
         if not formula:
@@ -115,7 +130,7 @@ class Generator:
                 continue
             seen.add(col)
             if col in calc:
-                items.append(f"{self.expr(calc[col]['formula'], node['id'] + '.' + col)} as {col}")
+                items.append(f"{self.expr(calc[col]['formula'], node['id'] + '.' + col)} as {qident(col)}")
                 continue
             hit = None
             for inp in node["inputs"]:
@@ -125,14 +140,14 @@ class Generator:
                     break
             if hit is None:
                 self.todo(node["id"], f"output column {col} has no input mapping")
-                items.append(f"null as {col}")
+                items.append(f"null as {qident(col)}")
             elif hit[1]["mappingType"] == "ConstantMapping":
-                items.append(f"{self._literal(hit[1].get('constantValue'))} as {col}")
+                items.append(f"{self._literal(hit[1].get('constantValue'))} as {qident(col)}")
             else:
-                items.append(f"{aliases[hit[0]]}.{strip_qualifier(hit[1]['source'])} as {col}")
+                items.append(f"{aliases[hit[0]]}.{qident(strip_qualifier(hit[1]['source']))} as {qident(col)}")
         for c in node["calculatedAttributes"]:
             if c["id"] not in seen and c["id"] not in skip:
-                items.append(f"{self.expr(c['formula'], node['id'] + '.' + c['id'])} as {c['id']}")
+                items.append(f"{self.expr(c['formula'], node['id'] + '.' + c['id'])} as {qident(c['id'])}")
         return items
 
     @staticmethod
@@ -159,7 +174,7 @@ class Generator:
 
     def _single_from(self, node: dict):
         inp = node["inputs"][0]
-        alias = snake(inp["node"])
+        alias = qident(snake(inp["node"]))
         return inp, alias, f"{self.ref(inp['node'])} as {alias}"
 
     def _projection(self, node: dict) -> str:
@@ -181,6 +196,7 @@ class Generator:
         la, ra = snake(left["node"]), snake(right["node"])
         if la == ra:
             la, ra = la + "_l", ra + "_r"
+        la, ra = qident(la), qident(ra)
         aliases = {left["node"]: la, right["node"]: ra}
         items = self.select_items(node, aliases)
         join = node["join"] or {}
@@ -198,7 +214,7 @@ class Generator:
             rm = self.find_mapping(node, right["node"], ja)
             lcol = strip_qualifier(lm["source"]) if lm else ja
             rcol = strip_qualifier(rm["source"]) if rm else ja
-            conds.append(f"{la}.{lcol} = {ra}.{rcol}")
+            conds.append(f"{la}.{qident(lcol)} = {ra}.{qident(rcol)}")
         if not conds:
             self.todo(node["id"], "no joinAttributes found")
             conds = ["true /* TODO: join condition */"]
@@ -231,23 +247,23 @@ class Generator:
                 fn = (measures[col] or "sum").lower()
                 if fn not in AGG_FUNCS:
                     self.todo(node["id"], f"aggregationType {fn} not supported; emitted as-is")
-                agg_items.append(f"{fn}({alias}.{src}) as {col}")
+                agg_items.append(f"{fn}({alias}.{qident(src)}) as {qident(col)}")
             else:
                 group_cols.append(col)
-                agg_items.append(f"{alias}.{src} as {col}")
+                agg_items.append(f"{alias}.{qident(src)} as {qident(col)}")
         inner = ("select\n    " + ",\n    ".join(agg_items)
                  + f"\nfrom {from_clause}")
         if group_cols:
-            inner += "\ngroup by " + ", ".join(group_cols)
+            inner += "\ngroup by " + ", ".join(qident(c) for c in group_cols)
         if node["filter"]:
             inner += "\nwhere " + self.expr(node["filter"]["expression"],
                                             node["id"] + ".filter")
         if not calc_ids:
             return inner
-        outer_items = [c for c in group_cols] + list(measures)
+        outer_items = [qident(c) for c in group_cols] + [qident(m) for m in measures]
         for c in node["calculatedAttributes"]:
             outer_items.append(
-                f"{self.expr(c['formula'], node['id'] + '.' + c['id'])} as {c['id']}")
+                f"{self.expr(c['formula'], node['id'] + '.' + c['id'])} as {qident(c['id'])}")
         return ("select\n    " + ",\n    ".join(outer_items)
                 + f"\nfrom (\n{inner}\n) as {snake(node['id'])}_inner")
 
@@ -261,18 +277,18 @@ class Generator:
                 if m is None:
                     self.todo(node["id"], f"column {col} missing in union input "
                                           f"{inp['node']}; cast(null) used, type unverified")
-                    items.append(f"cast(null as varchar) as {col}")
+                    items.append(f"cast(null as varchar) as {qident(col)}")
                 elif m["mappingType"] == "ConstantMapping":
-                    items.append(f"{self._literal(m.get('constantValue'))} as {col}")
+                    items.append(f"{self._literal(m.get('constantValue'))} as {qident(col)}")
                 else:
-                    items.append(f"{strip_qualifier(m['source'])} as {col}")
+                    items.append(f"{qident(strip_qualifier(m['source']))} as {qident(col)}")
             branches.append("select\n    " + ",\n    ".join(items)
                             + f"\nfrom {self.ref(inp['node'])}")
         sql = "\nunion all\n".join(branches)
         if node["calculatedAttributes"]:
-            outer = list(targets)
+            outer = [qident(t) for t in targets]
             for c in node["calculatedAttributes"]:
-                outer.append(f"{self.expr(c['formula'], node['id'] + '.' + c['id'])} as {c['id']}")
+                outer.append(f"{self.expr(c['formula'], node['id'] + '.' + c['id'])} as {qident(c['id'])}")
             sql = ("select\n    " + ",\n    ".join(outer)
                    + f"\nfrom (\n{sql}\n) as union_inner")
         return sql
@@ -291,9 +307,9 @@ class Generator:
             return ("select\n    " + ",\n    ".join(items) + f"\nfrom {from_clause}")
         over = "row_number() over ("
         if part:
-            over += f"partition by {part} "
-        over += f"order by {ocol} {'desc' if odir == 'descending' else 'asc'})"
-        cols = [va["id"] for va in node["viewAttributes"]]
+            over += f"partition by {qident(part)} "
+        over += f"order by {qident(ocol)} {'desc' if odir == 'descending' else 'asc'})"
+        cols = [qident(va["id"]) for va in node["viewAttributes"]]
         inner = ("select\n    " + ",\n    ".join(items)
                  + f",\n    {over} as __rn\nfrom {from_clause}")
         sql = ("select\n    " + ",\n    ".join(cols)
@@ -326,7 +342,7 @@ class Generator:
             self.todo("logicalModel", "missing; final select is select * from top node")
             top = self.topo_order()[-1]["id"]
             return f"select *\nfrom {snake(top)}"
-        top_ref = snake(lm["topNode"])
+        top_ref = self.ref(lm["topNode"])
         items: list[str] = []
 
         def by_order(entries):
@@ -339,16 +355,16 @@ class Generator:
 
         for a in by_order(lm["attributes"]):
             col = (a.get("keyMapping") or {}).get("columnName") or a["id"]
-            items.append(f"{col} as {a['id']}" if col != a["id"] else col)
+            items.append(f"{qident(col)} as {qident(a['id'])}" if col != a["id"] else qident(col))
         for c in by_order(lm["calculatedAttributes"]):
-            items.append(f"{self.expr(c['formula'], 'logicalModel.' + c['id'])} as {c['id']}")
+            items.append(f"{self.expr(c['formula'], 'logicalModel.' + c['id'])} as {qident(c['id'])}")
         for m in by_order(lm["baseMeasures"]):
             # spec 5.6: aggregationType is a BI-consumption default,
             # NOT an instruction to re-aggregate here.
             col = (m.get("measureMapping") or {}).get("columnName") or m["id"]
-            items.append(f"{col} as {m['id']}" if col != m["id"] else col)
+            items.append(f"{qident(col)} as {qident(m['id'])}" if col != m["id"] else qident(col))
         for c in by_order(lm["calculatedMeasures"]):
-            items.append(f"{self.expr(c['formula'], 'logicalModel.' + c['id'])} as {c['id']}")
+            items.append(f"{self.expr(c['formula'], 'logicalModel.' + c['id'])} as {qident(c['id'])}")
         for r in lm["restrictedMeasures"]:
             self.todo("logicalModel", f"restricted measure {r['id']} not generated (spec 9)")
         return "select\n    " + ",\n    ".join(items) + f"\nfrom {top_ref}"
@@ -360,7 +376,7 @@ class Generator:
             indented = "\n".join("    " + line if line else line
                                  for line in body.splitlines())
             ctes.append(f"-- node: {node['id']} ({node['type']})\n"
-                        f"{snake(node['id'])} as (\n{indented}\n)")
+                        f"{qident(snake(node['id']))} as (\n{indented}\n)")
         final = self.final_select()
         sc = self.ir["scenario"]
         header = [
@@ -372,8 +388,12 @@ class Generator:
         if self.todos:
             header.append(f"-- TODO items: {len(self.todos)}")
             header += [f"-- TODO {t}" for t in self.todos]
-        sql = ("\n".join(header) + "\n\nwith\n"
-               + ",\n\n".join(ctes) + "\n\n" + final + "\n")
+        if ctes:
+            sql = ("\n".join(header) + "\n\nwith\n"
+                   + ",\n\n".join(ctes) + "\n\n" + final + "\n")
+        else:
+            # node-less view (logicalModel sits directly on a data source)
+            sql = "\n".join(header) + "\n\n" + final + "\n"
         return sql, self.todos
 
 

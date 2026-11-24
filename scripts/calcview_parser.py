@@ -43,6 +43,24 @@ KNOWN_FUNCTIONS = {
 VAR_RE = re.compile(r"\$\$([A-Za-z0-9_]+)\$\$")
 FUNC_RE = re.compile(r"([A-Za-z_][A-Za-z0-9_]*)\s*\(")
 
+# Infix operators that FUNC_RE can mistake for function calls when a
+# parenthesised operand follows (e.g. `("A"='1') and ("B"='2')` or
+# `"X" in ('A','B')`). They are operators, not functions.
+OPERATORS = {"and", "or", "not", "in"}
+
+
+def ref_id(name: str | None) -> str | None:
+    """Normalise a reference to a node or data source.
+
+    XS classic exports (schemaVersion 2.x) prefix references with '#'
+    (input node="#Join_1", mapping source="#Join_1.COL", keyMapping
+    columnObjectName="#Join_1") while the definitions themselves carry
+    no prefix. Strip it so references match definitions.
+    """
+    if name and name.startswith("#"):
+        return name[1:]
+    return name
+
 
 def local(tag: str) -> str:
     """Element tag -> local name (strip {ns} and prefix:)."""
@@ -193,11 +211,12 @@ def parse_node(node_elem: ET.Element) -> dict:
         for m in children(inp, "mapping"):
             mappings.append({
                 "target": m.attrib.get("target"),
-                "source": m.attrib.get("source"),
+                "source": ref_id(m.attrib.get("source")),
                 "mappingType": xsi_type(m) or "AttributeMapping",
                 "constantValue": m.attrib.get("constantValue"),
             })
-        node["inputs"].append({"node": inp.attrib.get("node"), "mappings": mappings})
+        node["inputs"].append({"node": ref_id(inp.attrib.get("node")),
+                               "mappings": mappings})
 
     filt = first_child(node_elem, "filter")
     if filt is not None:
@@ -252,7 +271,7 @@ def parse_logical_model(root: ET.Element) -> dict | None:
                 "id": a.attrib.get("id"),
                 "key": a.attrib.get("key") == "true",
                 "order": a.attrib.get("order"),
-                "keyMapping": ({"columnObjectName": km.attrib.get("columnObjectName"),
+                "keyMapping": ({"columnObjectName": ref_id(km.attrib.get("columnObjectName")),
                                 "columnName": km.attrib.get("columnName")} if km is not None else None),
             })
     for container_name, key in (("calculatedAttributes", "calculatedAttributes"),
@@ -270,7 +289,7 @@ def parse_logical_model(root: ET.Element) -> dict | None:
                 mm = first_child(item, "measureMapping")
                 if mm is not None:
                     entry["measureMapping"] = {
-                        "columnObjectName": mm.attrib.get("columnObjectName"),
+                        "columnObjectName": ref_id(mm.attrib.get("columnObjectName")),
                         "columnName": mm.attrib.get("columnName")}
             else:
                 entry["formula"] = find_formula(item)
@@ -303,6 +322,7 @@ def parse(path: Path) -> dict:
 def trace_lineage(ir: dict, node_id: str, column: str,
                   seen: frozenset = frozenset()) -> list[dict]:
     """Trace one output column back to its data source. Returns chain steps."""
+    node_id = ref_id(node_id) or node_id
     ds_ids = {d["id"] for d in ir["dataSources"]}
     if node_id in ds_ids:
         return [{"node": node_id, "column": column, "kind": "source"}]
@@ -335,7 +355,7 @@ def collect_expressions(ir: dict) -> list[dict]:
     def add(location, kind, item_id, formula):
         if not formula:
             return
-        funcs = sorted({f.lower() for f in FUNC_RE.findall(formula)})
+        funcs = sorted({f.lower() for f in FUNC_RE.findall(formula)} - OPERATORS)
         unknown = [f for f in funcs if f not in KNOWN_FUNCTIONS]
         rows.append({
             "location": location, "kind": kind, "id": item_id,
