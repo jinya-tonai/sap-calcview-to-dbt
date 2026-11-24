@@ -37,7 +37,7 @@ KNOWN_FUNCTIONS = {
     "round", "rounddown", "abs", "sign", "mod", "component", "weekday",
     "case", "cast", "coalesce", "nullif", "count", "sum", "min", "max",
     "avg", "substring", "substr", "to_date", "datediff", "row_number",
-    "rank", "dense_rank",
+    "rank", "dense_rank", "match",
 }
 
 VAR_RE = re.compile(r"\$\$([A-Za-z0-9_]+)\$\$")

@@ -46,6 +46,23 @@ NUMERIC_TYPES = {"INTEGER", "INT", "BIGINT", "SMALLINT", "TINYINT",
                  "DECIMAL", "DOUBLE", "REAL", "FLOAT"}
 
 
+def _glob_to_like(pattern_sql: str) -> str:
+    """Convert a column-engine wildcard pattern to a LIKE pattern.
+
+    Only string literals are converted ('*' -> '%', '?' -> '_', with
+    LIKE's own wildcards and the escape character escaped first).
+    Non-literal patterns pass through unchanged.
+    """
+    p = pattern_sql.strip()
+    if len(p) >= 2 and p.startswith("'") and p.endswith("'"):
+        body = p[1:-1].replace("''", "'")
+        body = (body.replace("\\", "\\\\").replace("%", "\\%")
+                    .replace("_", "\\_")
+                    .replace("*", "%").replace("?", "_"))
+        return "'" + body.replace("'", "''") + "'"
+    return pattern_sql
+
+
 class Translator:
     def __init__(self, variables: dict[str, dict] | None = None):
         """variables: {VAR_ID: {defaultValue, dataType}} from the IR."""
@@ -159,6 +176,15 @@ class Translator:
             return f"not ({a[0]})"
         if fn in OPERATORS:
             return f"{fn}({', '.join(a)})"
+        if fn == "match" and len(a) == 2:
+            # Column-engine match(value, pattern): wildcard pattern match
+            # (SAP HANA Developer Guide example: match("ABC",'*abc*')).
+            # '*' -> '%', '?' -> '_', compared case-insensitively per the
+            # official example; flagged for verification like weekday().
+            self.todos.append("match() converted to ilike (wildcards * -> %, "
+                              "? -> _); verify case sensitivity against "
+                              "source data (spec 7.3)")
+            return f"{a[0]} ilike {_glob_to_like(a[1])}"
         if fn == "case" and len(a) >= 3:
             # HANA calc-engine case(expr, value, result, ..., default?)
             # -> Snowflake CASE expr WHEN value THEN result ... ELSE d END

@@ -354,6 +354,9 @@ Calculation:scenario
 | `abs/sign/mod` | 同名 | そのまま可 |
 | `component(d, n)` | `extract(<part> from d)` | n の対応（1=年, 2=日, 3=月, 4=時, 5=分, 6=秒 と資料により順序が特殊）— **実XMLで当たったら個別確認** |
 | `weekday(d)` | `dayofweek(d)` | 曜日番号の起点（月曜=0 vs 日曜=1）が違うため **要補正** |
+| `match(x, pattern)` | `x ilike <pattern>` | CE のワイルドカード照合（公式例 `match("ABC",'*abc*')`）。`*`→`%`、`?`→`_` に変換し、大文字小文字は公式例に倣い区別しない（ilike）。**実データで検証**（v0.2.2 で実装、実コーパスで1件出現: `match("SHUKKA_POSNR", '0*')` → `"SHUKKA_POSNR" ilike '0%'`） |
+| `case(x, v1, r1, …, default?)` | `case x when v1 then r1 … else default end` | CE のスイッチ形 case（v0.2.1 で実装、実コーパスで16件確認） |
+| `in(x, v1, v2, …)` | `x in (v1, v2, …)` | 関数形 in は演算子形に変換（v0.2.1） |
 | 未知の関数 | 変換しない | 元式を残し `-- TODO: unconverted function <name>` + expressions.csv に記録 |
 
 ### 7.4 演算子
