@@ -19,14 +19,6 @@ SAP BW/HANA の Calculation View ロジックを **Snowflake 上の dbt モデ�
 - パーサが扱えない要素は **黙って落としません**。`unsupported.md` に報告され、
   中間表現（IR）にも保持されます。
 
-## 実装状況
-
-| 段階 | 状態 |
-|---|---|
-| MVP-1: パーサ + 棚卸し | ✅ 実装済み |
-| MVP-2: ノード → SQL 変換（本リポジトリ） | ✅ 実装済み |
-| MVP-3: dbt プロジェクト生成 | ✅ 実装済み |
-
 設計: [references/hanacv2sql-reproduction-spec.md](references/hanacv2sql-reproduction-spec.md)
 （HANACV2SQL の変換パイプラインを TROCCO → Snowflake → dbt 構成向けに
 再現した仕様書。日本語）
@@ -43,14 +35,14 @@ git clone https://github.com/jinya-tonai/sap-calcview-to-dbt ~/.claude/skills/sa
 
 ## 使い方
 
-棚卸し（MVP-1）:
+棚卸し:
 
 ```bash
 python3 scripts/calcview_parser.py path/to/calculation.xml --out output
 python3 scripts/calcview_parser.py folder/with/views/     --out output
 ```
 
-SQL 生成（MVP-2）— ノードごとに 1 つの CTE を作り、最終 SELECT は
+SQL 生成 — ノードごとに 1 つの CTE を作り、最終 SELECT は
 logicalModel に従います（ベースメジャーは再集計せず、そのまま射影します）。
 
 ```bash
@@ -66,7 +58,7 @@ python3 scripts/calcview_to_sql.py folder/with/views/ --out output_sql --mapping
 ことはありません。マッピング表がない場合、データソースはプレースホルダ名
 になり、TODO としてフラグが立ちます。
 
-dbt プロジェクト生成（MVP-3）— sources / staging / intermediate / marts を
+dbt プロジェクト生成 — sources / staging / intermediate / marts を
 `ref()` / `source()` で配線し、`key="true"` 属性からキーテストも生成します。
 着地先 DB・スキーマ、レイヤ名、intermediate への分割ルールはプロジェクト
 プロファイルで決めます（`references/project-profile-template.yaml` を
@@ -127,9 +119,9 @@ python3 scripts/calcview_to_sql.py examples --out output_sql
 
 ```
 SKILL.md                  … スキル定義（エージェントが読む）
-scripts/calcview_parser.py … MVP-1 パーサ（標準ライブラリのみ）
-scripts/calcview_to_sql.py … MVP-2 SQL ジェネレータ（標準ライブラリのみ）
-scripts/calcview_to_dbt_project.py … MVP-3 dbt プロジェクト生成（標準ライブラリのみ）
+scripts/calcview_parser.py … パーサ（標準ライブラリのみ）
+scripts/calcview_to_sql.py … SQL ジェネレータ（標準ライブラリのみ）
+scripts/calcview_to_dbt_project.py … dbt プロジェクト生成（標準ライブラリのみ）
 scripts/expr_translate.py  … HANA 式 → Snowflake 変換（仕様 §7）
 references/               … 再現仕様（設計の正本）
 examples/                 … フィクスチャ + 期待サマリー・SQL スナップショット

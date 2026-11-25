@@ -8,10 +8,6 @@ into an intermediate representation and a complete inventory — the first
 step of reproducing SAP BW/HANA calculation-view logic as **dbt models on
 Snowflake**.
 
-SAP BW/HANA の Graphical Calculation View を Snowflake + dbt で再現するための
-棚卸しスキル。XML をローカルで決定的にパースし、ノード構成・カラム系譜・
-式・変数・未対応要素を洗い出す。
-
 ## Why
 
 - Converter SaaS tools exist, but uploading a client's `calculation.xml` to
@@ -22,14 +18,6 @@ SAP BW/HANA の Graphical Calculation View を Snowflake + dbt で再現する�
   variables, unsupported items) mechanically, so humans only review.
 - Anything the parser cannot handle is **never silently dropped**: it is
   reported in `unsupported.md` and preserved in the IR.
-
-## Status
-
-| Stage | Status |
-|---|---|
-| MVP-1: parser + inventory | ✅ Implemented |
-| MVP-2: node → SQL conversion (this repository) | ✅ Implemented |
-| MVP-3: dbt project generation | ✅ Implemented |
 
 Design: [references/hanacv2sql-reproduction-spec.md](references/hanacv2sql-reproduction-spec.md)
 (a reproduction spec of the HANACV2SQL conversion pipeline, adapted to a
@@ -48,14 +36,14 @@ Or just use the parser directly — it only needs Python 3 (stdlib only).
 
 ## Usage
 
-Inventory (MVP-1):
+Inventory:
 
 ```bash
 python3 scripts/calcview_parser.py path/to/calculation.xml --out output
 python3 scripts/calcview_parser.py folder/with/views/     --out output
 ```
 
-SQL generation (MVP-2) — one CTE per node, final SELECT per the
+SQL generation — one CTE per node, final SELECT per the
 logicalModel (base measures are projected, never re-aggregated):
 
 ```bash
@@ -71,7 +59,7 @@ Anything unconvertible stays in the SQL as a `-- TODO` header entry —
 never silently dropped. Without a mapping table, data sources use
 placeholder names and are flagged as TODOs.
 
-dbt project generation (MVP-3) — sources, staging, intermediate and
+dbt project generation — sources, staging, intermediate and
 mart models wired with `ref()` / `source()`, plus key tests derived
 from `key="true"` attributes. Landing database/schema, layer names and
 the intermediate-split rules come from a project profile file (copy
@@ -133,9 +121,9 @@ python3 scripts/calcview_to_sql.py examples --out output_sql
 
 ```
 SKILL.md                  … skill definition (read by agents)
-scripts/calcview_parser.py … the MVP-1 parser (stdlib only)
-scripts/calcview_to_sql.py … the MVP-2 SQL generator (stdlib only)
-scripts/calcview_to_dbt_project.py … the MVP-3 dbt project generator (stdlib only)
+scripts/calcview_parser.py … the parser (stdlib only)
+scripts/calcview_to_sql.py … the SQL generator (stdlib only)
+scripts/calcview_to_dbt_project.py … the dbt project generator (stdlib only)
 scripts/expr_translate.py  … HANA expression → Snowflake translator (spec §7)
 references/               … the reproduction spec (design source of truth)
 examples/                 … fixtures + expected summaries and SQL snapshots
