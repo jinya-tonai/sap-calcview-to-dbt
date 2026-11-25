@@ -6,6 +6,14 @@
 # dbt layer layouts and landing conventions differ per project, so treat
 # every value here as a placeholder, not a standard.
 
+outputs:
+  # Where generated files go. The skill reads these from the profile
+  # instead of making the user pass --out flags; if the profile is
+  # absent, the skill asks once and records the answer here.
+  parser_out: output        # inventory + IR (per view: <view>/inventory/*.csv)
+  sql_out: output_sql       # flat SQL files (MVP-2 style)
+  dbt_out: dbt_project      # generated dbt project
+
 landing:
   database: "RAW"     # dummy: Snowflake database where source tables land
   raw_schema: "SAP"   # dummy: schema for landed SAP tables (mapping.csv)
