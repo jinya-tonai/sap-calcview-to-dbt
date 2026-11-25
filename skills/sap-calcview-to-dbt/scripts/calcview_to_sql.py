@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""MVP-2: Calculation View IR -> Snowflake SQL (CTE per node).
+"""Calculation View IR -> Snowflake SQL (CTE per node).
 
 Implements sections 5-7 of references/hanacv2sql-reproduction-spec.md:
 each node becomes one CTE in dependency order; the final SELECT follows
@@ -412,10 +412,17 @@ def load_mapping(path: Path | None) -> dict[str, str]:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("input", help="calculation view XML file or directory")
-    ap.add_argument("--out", default="output_sql", help="output root directory")
-    ap.add_argument("--mapping", help="mapping CSV (spec section 4.1)")
+    ap = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    ap.add_argument("input", help="calculation view XML file, or a directory "
+                                  "of them (searched recursively)")
+    ap.add_argument("--out", default="output_sql",
+                    help="output root; one .sql file is written per view")
+    ap.add_argument("--mapping",
+                    help="mapping CSV with columns datasource_id and "
+                         "sf_database, sf_schema, sf_table; without it, "
+                         "placeholder table names are used and flagged TODO")
     args = ap.parse_args()
     src = Path(args.input)
     files: list[Path] = []

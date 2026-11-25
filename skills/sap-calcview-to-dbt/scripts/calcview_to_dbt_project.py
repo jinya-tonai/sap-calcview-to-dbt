@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""MVP-3: Calculation View IRs -> dbt project (spec section 10).
+"""Calculation View IRs -> dbt project (spec section 10).
 
 Generates a dbt project skeleton from one or more calculation view XMLs:
 
@@ -16,7 +16,7 @@ Layer names, prefixes, the landing database/schema and the split rules
 come from project_profile.yaml (see references/project-profile-template
 .yaml). Without a profile, the template's dummy defaults are used and
 the run reports that. Table/view wiring comes from the mapping CSV
-(same file as MVP-2; the optional `kind` column distinguishes landed
+(same file as calcview_to_sql.py; the optional `kind` column distinguishes landed
 tables from in-corpus view references).
 
 Usage:
@@ -517,12 +517,22 @@ def render_issues(issues_by_view: dict, total_views: int) -> str:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("input", help="calculation view XML file or directory")
-    ap.add_argument("--out", default="dbt_project",
-                    help="output project directory")
-    ap.add_argument("--mapping", help="mapping CSV (spec section 4.1)")
-    ap.add_argument("--profile", help="project_profile.yaml")
+    ap = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    ap.add_argument("input", help="calculation view XML file, or a directory "
+                                  "of them (searched recursively)")
+    ap.add_argument("--out", default=None,
+                    help="output project directory; when omitted, the "
+                         "profile's outputs.dbt_out is used")
+    ap.add_argument("--mapping",
+                    help="mapping CSV with columns datasource_id and "
+                         "sf_database, sf_schema, sf_table (optional kind "
+                         "column: sap_table / view_in_corpus / ...)")
+    ap.add_argument("--profile",
+                    help="project_profile.yaml (outputs, landing, dbt "
+                         "layers, layer split, lint, conventions); when "
+                         "omitted, generic dummy defaults apply")
     args = ap.parse_args()
     src = Path(args.input)
     files: list[Path] = []
@@ -535,7 +545,9 @@ def main() -> int:
         print("no input files found", file=sys.stderr)
         return 1
     profile = load_profile(Path(args.profile) if args.profile else None)
-    report = build_project(files, Path(args.out),
+    out_dir = (Path(args.out) if args.out else Path(
+        profile.get("outputs", {}).get("dbt_out", "dbt_project")))
+    report = build_project(files, out_dir,
                            load_mapping_rows(Path(args.mapping)
                                              if args.mapping else None),
                            profile, bool(args.profile))

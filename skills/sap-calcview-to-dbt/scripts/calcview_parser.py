@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""MVP-1: SAP HANA Graphical Calculation View XML -> IR + inventory.
+"""SAP HANA Graphical Calculation View XML -> IR + inventory.
 
 Implements sections 2-3 of hanacv2sql-reproduction-spec.md:
 parse calculation.xml (.calculationview / .hdbcalculationview) into an
 intermediate representation (ir.json) and inventory files
 (nodes / datasources / lineage / expressions / variables CSVs,
-unsupported.md, summary.md). No SQL generation yet (that is MVP-2).
+unsupported.md, summary.md).
 
 Design rules (from the spec):
 - Judge elements by LOCAL NAME only (namespace URIs vary by generation).
@@ -534,9 +534,16 @@ def process(path: Path, out_root: Path) -> dict:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("input", help="calculation view XML file or directory of them")
-    ap.add_argument("--out", default="output", help="output root directory")
+    ap = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    ap.add_argument("input", help="calculation view XML file, or a directory "
+                                  "of them (searched recursively for "
+                                  "*.hdbcalculationview / *.calculationview "
+                                  "/ *.xml)")
+    ap.add_argument("--out", default="output",
+                    help="output root; per view a <view>/ folder is created "
+                         "with ir.json, summary.md and inventory/*.csv")
     args = ap.parse_args()
     src = Path(args.input)
     files: list[Path] = []
