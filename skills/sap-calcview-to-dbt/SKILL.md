@@ -3,12 +3,12 @@ name: sap-calcview-to-dbt
 description: Parse SAP HANA Graphical Calculation View XML (calculation.xml / .hdbcalculationview exported from HANA Studio) into an intermediate representation and a full inventory — node list, data sources, column-level lineage, expressions, variables/input parameters, and unsupported/manual items — and generate Snowflake SQL (one CTE per node) from it, as the first steps of reproducing SAP BW/HANA calculation-view logic as dbt models on Snowflake. Use when the user provides or mentions a calculation view XML, asks what a calculation view contains or depends on, wants it converted to SQL/dbt, or plans a HANA/BW to Snowflake+dbt migration. All processing is local and deterministic; never upload calculation view XML to external converter services.
 license: MIT
 metadata:
-  version: "0.7.2"
+  version: "0.7.3"
 ---
 
 # SAP Calculation View → dbt（棚卸し）
 
-HANA Studio等から抜いた Graphical Calculation View の XML を、Snowflake + dbt へ再現するためのスキル。現行バージョンは **MVP-3（パース＋棚卸し＋SQL生成＋dbtプロジェクト生成）まで**。
+HANA Studio等から抜いた Graphical Calculation View の XML を、Snowflake + dbt へ再現するためのスキル。パース＋棚卸し＋SQL生成＋dbtプロジェクト生成まで対応する。
 
 ## 原則
 
@@ -31,7 +31,7 @@ HANA Studio等から抜いた Graphical Calculation View の XML を、Snowflake
 - **既存の linter / フォーマッタ**: sqlfluff 等を使っているか、その設定ファイル（`.sqlfluff` 等）と dialect。プロファイルに無くても、作業フォルダに設定ファイルがあればそれを正とする
 - **dbt のコーディング規約**: SQL スタイル（キーワードケース、インデント、CTE の書き方）、モデル命名の追加ルール、ドキュメント／テストの要求水準、使用中パッケージ（dbt_utils 等）
 
-聞いた答えは mapping.csv の `sf_database` / `sf_schema` や、MVP-3 のレイヤ分割に反映する。答えが得られなかった項目は空欄＋TODOのままにし、勝手に埋めない。
+聞いた答えは mapping.csv の `sf_database` / `sf_schema` や、dbtプロジェクト生成のレイヤ分割に反映する。答えが得られなかった項目は空欄＋TODOのままにし、勝手に埋めない。
 
 ## 手順
 
@@ -89,7 +89,7 @@ HANA Studio等から抜いた Graphical Calculation View の XML を、Snowflake
 
 ## 既知の制限
 
-- dbtプロジェクト生成（MVP-3）はプロジェクト一式の生成まで。マテリアライゼーションは既定（staging/intermediate=view、marts=table）で、増分戦略やスナップショットは未対応。`dbt compile` での検証は未実施（生成側のパース検証＋参照整合まで）。
-- Rankは基本対応（`row_number` + しきい値）をMVP-3から前倒しで実装済み。ただしRankノードの詳細要素と変数の `variableProperties` は公開実サンプルで裏取りできていないため、決め打ちせず汎用キャプチャ（IRの `extras` / `rawProperties`）で保持している。実XMLで構造が判明したら固定化する。
+- dbtプロジェクト生成はプロジェクト一式の生成まで。マテリアライゼーションは既定（staging/intermediate=view、marts=table）で、増分戦略やスナップショットは未対応。`dbt compile` での検証は未実施（生成側のパース検証＋参照整合まで）。
+- Rankは基本対応（`row_number` + しきい値）を実装済み。ただしRankノードの詳細要素は実データで裏取りできていない（実コーパス186件中0件）ため、決め打ちせず汎用キャプチャ（IRの `extras`）で保持している。変数の `variableProperties` のキーは実データで確認済み。
 - マッピング表はテーブル対応のみ対応（`calcview_to_sql.py --mapping`）。カラム対応（仕様 §4.2）は未実装で、`datasources.csv` の `mapped_table` はパーサ単体では空のまま。
 - 式辞書は仕様 §7.3 の初期版。`component()` の部品番号対応と `weekday()` の起点補正はTODOフラグ付きで出し、実データ確認が前提。

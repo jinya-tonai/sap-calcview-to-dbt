@@ -508,7 +508,7 @@ def process(path: Path, out_root: Path) -> dict:
     with (inv / "unsupported.md").open("w", encoding="utf-8") as fh:
         fh.write(f"# Unsupported / manual items — {ir['scenario']['id']}\n\n")
         if not unsupported:
-            fh.write("None detected by the MVP-1 checks.\n")
+            fh.write("None detected.\n")
         for u in unsupported:
             fh.write(f"- **{u['item']}** ({u['where']}): {u['reason']}\n")
 
@@ -549,7 +549,7 @@ def main() -> int:
     files: list[Path] = []
     if src.is_dir():
         for pat in ("*.hdbcalculationview", "*.calculationview", "*.xml"):
-            files.extend(sorted(src.glob(pat)))
+            files.extend(sorted(src.rglob(pat)))
     else:
         files = [src]
     if not files:

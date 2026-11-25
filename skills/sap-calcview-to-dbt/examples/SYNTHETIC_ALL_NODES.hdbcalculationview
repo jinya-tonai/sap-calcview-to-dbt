@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Synthetic fixture (NOT a real SAP export).
-     Purpose: exercise every node type the MVP-1 parser must handle
+     Purpose: exercise every node type the parser must handle
      (Projection + filter + calculated columns, Join, Aggregation, Union
      with a constant mapping, Rank, input parameter, logicalModel with
      baseMeasures / calculatedAttributes / restrictedMeasures).

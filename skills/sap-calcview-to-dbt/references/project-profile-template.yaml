@@ -11,7 +11,7 @@ outputs:
   # instead of making the user pass --out flags; if the profile is
   # absent, the skill asks once and records the answer here.
   parser_out: output        # inventory + IR (per view: <view>/inventory/*.csv)
-  sql_out: output_sql       # flat SQL files (MVP-2 style)
+  sql_out: output_sql       # flat SQL files (calcview_to_sql.py)
   dbt_out: dbt_project      # generated dbt project
   inventory_out: inventory  # inventory embedded in the dbt project
                             # (relative to dbt_out) — a shared team
