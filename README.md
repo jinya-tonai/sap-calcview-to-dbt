@@ -19,20 +19,25 @@ Snowflake**.
 - Anything the parser cannot handle is **never silently dropped**: it is
   reported in `unsupported.md` and preserved in the IR.
 
-Design: [references/hanacv2sql-reproduction-spec.md](references/hanacv2sql-reproduction-spec.md)
+Design: [skills/sap-calcview-to-dbt/references/hanacv2sql-reproduction-spec.md](skills/sap-calcview-to-dbt/references/hanacv2sql-reproduction-spec.md)
 (a reproduction spec of the HANACV2SQL conversion pipeline, adapted to a
 TROCCO → Snowflake → dbt stack).
 
 ## Install
 
-Clone this repository into your Claude Code skills directory:
+As a Claude Code plugin — this repository is its own marketplace:
+
+```
+/plugin marketplace add jinya-tonai/sap-calcview-to-dbt
+/plugin install sap-calcview-to-dbt@sap-calcview-to-dbt
+```
+
+Or as a standalone skill — clone the repository and copy the skill
+folder into your Claude Code skills directory:
 
 ```bash
-# personal — available in all your projects
-git clone https://github.com/jinya-tonai/sap-calcview-to-dbt ~/.claude/skills/sap-calcview-to-dbt
-
-# or per project
-git clone https://github.com/jinya-tonai/sap-calcview-to-dbt <project>/.claude/skills/sap-calcview-to-dbt
+git clone https://github.com/jinya-tonai/sap-calcview-to-dbt
+cp -r sap-calcview-to-dbt/skills/sap-calcview-to-dbt ~/.claude/skills/
 ```
 
 ## Usage
@@ -55,17 +60,17 @@ Python 3.10+). They also work standalone:
 Inventory:
 
 ```bash
-python3 scripts/calcview_parser.py path/to/calculation.xml --out output
-python3 scripts/calcview_parser.py folder/with/views/     --out output
+python3 skills/sap-calcview-to-dbt/scripts/calcview_parser.py path/to/calculation.xml --out output
+python3 skills/sap-calcview-to-dbt/scripts/calcview_parser.py folder/with/views/     --out output
 ```
 
 SQL generation — one CTE per node, final SELECT per the
 logicalModel (base measures are projected, never re-aggregated):
 
 ```bash
-python3 scripts/calcview_to_sql.py path/to/calculation.xml --out output_sql
+python3 skills/sap-calcview-to-dbt/scripts/calcview_to_sql.py path/to/calculation.xml --out output_sql
 # with a mapping table (datasource_id, sf_database, sf_schema, sf_table):
-python3 scripts/calcview_to_sql.py folder/with/views/ --out output_sql --mapping mapping.csv
+python3 skills/sap-calcview-to-dbt/scripts/calcview_to_sql.py folder/with/views/ --out output_sql --mapping mapping.csv
 ```
 
 Expressions are translated per the spec §7.3 dictionary
@@ -79,11 +84,11 @@ dbt project generation — sources, staging, intermediate and
 mart models wired with `ref()` / `source()`, plus key tests derived
 from `key="true"` attributes. Landing database/schema, layer names and
 the intermediate-split rules come from a project profile file (copy
-`references/project-profile-template.yaml` into your working folder as
+`skills/sap-calcview-to-dbt/references/project-profile-template.yaml` into your working folder as
 `project_profile.yaml`; the shipped values are generic dummy defaults):
 
 ```bash
-python3 scripts/calcview_to_dbt_project.py folder/with/views/ --out dbt_project \
+python3 skills/sap-calcview-to-dbt/scripts/calcview_to_dbt_project.py folder/with/views/ --out dbt_project \
     --mapping mapping.csv --profile project_profile.yaml
 ```
 
@@ -114,7 +119,7 @@ output/<VIEW_NAME>/
 
 ## Examples
 
-`examples/` contains two fixtures:
+`skills/sap-calcview-to-dbt/examples/` contains two fixtures:
 
 - `SALES_ORDER_WORKLIST.hdbcalculationview` — a faithful reconstruction of
   the public openSAP sample (3 joins, 4 data sources, 16 output columns).
@@ -126,23 +131,24 @@ output/<VIEW_NAME>/
   restricted measure (which the parser correctly flags as unsupported).
 
 Expected summaries and generated SQL snapshots are in
-`examples/expected/`. Try it:
+`skills/sap-calcview-to-dbt/examples/expected/`. Try it:
 
 ```bash
-python3 scripts/calcview_parser.py examples --out output
-python3 scripts/calcview_to_sql.py examples --out output_sql
+python3 skills/sap-calcview-to-dbt/scripts/calcview_parser.py skills/sap-calcview-to-dbt/examples --out output
+python3 skills/sap-calcview-to-dbt/scripts/calcview_to_sql.py skills/sap-calcview-to-dbt/examples --out output_sql
 ```
 
 ## Repository layout
 
 ```
-SKILL.md                  … skill definition (read by agents)
-scripts/calcview_parser.py … the parser (stdlib only)
-scripts/calcview_to_sql.py … the SQL generator (stdlib only)
-scripts/calcview_to_dbt_project.py … the dbt project generator (stdlib only)
-scripts/expr_translate.py  … HANA expression → Snowflake translator (spec §7)
-references/               … the reproduction spec (design source of truth)
-examples/                 … fixtures + expected summaries and SQL snapshots
+.claude-plugin/            … plugin + marketplace manifests
+skills/sap-calcview-to-dbt/
+├─ SKILL.md                … skill definition (read by Claude Code)
+├─ scripts/                … parser, SQL generator, dbt project generator,
+│                            expression translator (Python stdlib only)
+├─ references/             … the reproduction spec (design source of truth)
+│                            and the project profile template
+└─ examples/               … fixtures + expected summaries / SQL snapshots
 ```
 
 ## Contributing

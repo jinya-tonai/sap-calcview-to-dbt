@@ -1,0 +1,16 @@
+name: 'sap_calcview_repro'
+version: '1.0.0'
+config-version: 2
+
+profile: 'sap_calcview_repro'
+
+model-paths: ['models']
+
+models:
+  sap_calcview_repro:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: view
+    marts:
+      +materialized: table

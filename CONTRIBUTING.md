@@ -26,15 +26,15 @@ Regression check — run both tools on the fixtures and diff against the
 expected outputs before opening a PR:
 
 ```bash
-python3 scripts/calcview_parser.py examples --out /tmp/out_parser
-python3 scripts/calcview_to_sql.py examples --out /tmp/out_sql
-diff /tmp/out_parser/SALES_ORDER_WORKLIST/summary.md examples/expected/SALES_ORDER_WORKLIST.summary.md
-diff /tmp/out_parser/CV_SALES_BY_ORG/summary.md      examples/expected/CV_SALES_BY_ORG.summary.md
-diff /tmp/out_sql/SALES_ORDER_WORKLIST/SALES_ORDER_WORKLIST.sql examples/expected/SALES_ORDER_WORKLIST.sql
-diff /tmp/out_sql/CV_SALES_BY_ORG/CV_SALES_BY_ORG.sql           examples/expected/CV_SALES_BY_ORG.sql
-python3 scripts/calcview_to_dbt_project.py examples --out /tmp/out_dbt \
-    --profile references/project-profile-template.yaml
-diff -r /tmp/out_dbt examples/expected_dbt
+python3 skills/sap-calcview-to-dbt/scripts/calcview_parser.py skills/sap-calcview-to-dbt/examples --out /tmp/out_parser
+python3 skills/sap-calcview-to-dbt/scripts/calcview_to_sql.py skills/sap-calcview-to-dbt/examples --out /tmp/out_sql
+diff /tmp/out_parser/SALES_ORDER_WORKLIST/summary.md skills/sap-calcview-to-dbt/examples/expected/SALES_ORDER_WORKLIST.summary.md
+diff /tmp/out_parser/CV_SALES_BY_ORG/summary.md      skills/sap-calcview-to-dbt/examples/expected/CV_SALES_BY_ORG.summary.md
+diff /tmp/out_sql/SALES_ORDER_WORKLIST/SALES_ORDER_WORKLIST.sql skills/sap-calcview-to-dbt/examples/expected/SALES_ORDER_WORKLIST.sql
+diff /tmp/out_sql/CV_SALES_BY_ORG/CV_SALES_BY_ORG.sql           skills/sap-calcview-to-dbt/examples/expected/CV_SALES_BY_ORG.sql
+python3 skills/sap-calcview-to-dbt/scripts/calcview_to_dbt_project.py skills/sap-calcview-to-dbt/examples --out /tmp/out_dbt \
+    --profile skills/sap-calcview-to-dbt/references/project-profile-template.yaml
+diff -r /tmp/out_dbt skills/sap-calcview-to-dbt/examples/expected_dbt
 ```
 
 If your change intentionally alters the output, regenerate the expected
@@ -46,10 +46,10 @@ Jinja with a literal first).
 
 ## Where help is most wanted
 
-- **Expression dictionary** (`scripts/expr_translate.py`): HANA
+- **Expression dictionary** (`skills/sap-calcview-to-dbt/scripts/expr_translate.py`): HANA
   calculation-engine functions seen in real views, with their Snowflake
   equivalents and edge cases (argument order, origin/sign differences).
-  See the spec §7.3 table in `references/`.
+  See the spec §7.3 table in `skills/sap-calcview-to-dbt/references/`.
 - **Real-world XML structures**: the Rank node details and
   `variableProperties` are currently captured generically because no
   public sample shows them. Minimal synthetic examples of real export
