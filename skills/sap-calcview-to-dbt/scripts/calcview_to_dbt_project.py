@@ -319,6 +319,7 @@ def build_project(files: list[Path], out: Path, mapping_rows: dict,
     # marts + intermediates
     marts_yml = ["version: 2", "", "models:"]
     total_int = 0
+    issues_by_view: dict[str, list[tuple[str, str]]] = {}
     for ir in irs:
         sc = ir["scenario"]
         vid = sc["id"]
@@ -343,6 +344,7 @@ def build_project(files: list[Path], out: Path, mapping_rows: dict,
                                 "nodes": len(ir["nodes"]),
                                 "splitToInt": len(int_models),
                                 "todoItems": len(todos)})
+        issues_by_view[vid] = [(categorize(t), t) for t in todos]
         # marts yml entry with key tests
         lm = ir["logicalModel"] or {}
         keys = [a["id"] for a in lm.get("attributes", []) if a.get("key")]
@@ -386,7 +388,99 @@ def build_project(files: list[Path], out: Path, mapping_rows: dict,
         write_inventory(f, out / inv_rel)
     report["inventoryDir"] = inv_rel
     report["inventoryViews"] = len(files)
+
+    # ISSUES.md: one readable, checkbox-style backlog for the team.
+    # Merges the generator TODOs with each view's unsupported.md items.
+    for ir in irs:
+        vid = ir["scenario"]["id"]
+        upath = (out / inv_rel / slugify(vid) / "inventory"
+                 / "unsupported.md")
+        if not upath.exists():
+            continue
+        labels = []
+        existing = issues_by_view.setdefault(vid, [])
+        for line in upath.read_text(encoding="utf-8").splitlines():
+            m = re.match(r"- \*\*(.+?)\*\*", line)
+            if not m:
+                continue
+            label = m.group(1)
+            low = label.lower()
+            # skip items the generator TODOs already cover per expression
+            if low.startswith("unknown function"):
+                continue
+            if ("script_based" in low or "sqlscriptview" in low) and \
+                    any(c == "SCRIPT_BASED" for c, _ in existing):
+                continue
+            labels.append(label)
+            existing.append((label, line[2:].strip()))
+        if any("Restricted measure" in lb for lb in labels):
+            # the same item also appears as a generator TODO; keep the
+            # unsupported.md version (it carries the fuller description)
+            issues_by_view[vid] = [
+                (c, t) for c, t in issues_by_view[vid]
+                if not (c == "制限メジャー"
+                        and "restricted measure" in t.lower())]
+    total_issues = sum(len(v) for v in issues_by_view.values())
+    (out / "ISSUES.md").write_text(
+        render_issues(issues_by_view, len(irs)), encoding="utf-8")
+    report["issuesFile"] = "ISSUES.md"
+    report["issuesTotal"] = total_issues
     return report
+
+
+def categorize(todo: str) -> str:
+    t = todo.lower()
+    if "not in mapping table" in t:
+        return "マッピング未対応"
+    if "unconverted function" in t:
+        return "未知の関数"
+    if "sqlscriptview" in t or "script_based" in t:
+        return "SCRIPT_BASED"
+    if "restricted measure" in t:
+        return "制限メジャー"
+    if "approximated as left join" in t:
+        return "結合セマンティクス"
+    if "verify" in t or "needs confirmation" in t or "ilike" in t:
+        return "要検証の変換"
+    if "not supported" in t:
+        return "未対応の要素"
+    return "その他"
+
+
+def render_issues(issues_by_view: dict, total_views: int) -> str:
+    from collections import Counter
+    counts = Counter(c for items in issues_by_view.values() for c, _ in items)
+    total = sum(counts.values())
+    with_issues = sum(1 for v in issues_by_view.values() if v)
+    lines = [
+        "# 課題管理",
+        "",
+        "生成器が自動生成した課題一覧。手で編集せず、原因側"
+        "（mapping.csv / プロファイル / 変換辞書 / 変換器）を直して",
+        "再生成すること。対応が終わった課題は再生成で消える。",
+        "",
+        "## サマリー",
+        "",
+        f"- 対象ビュー: {total_views}",
+        f"- 課題のあるビュー: {with_issues}",
+        f"- 課題総数: {total}",
+        "",
+        "| 区分 | 件数 |",
+        "|---|---|",
+    ]
+    for cat, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0])):
+        lines.append(f"| {cat} | {n} |")
+    lines += ["", "## ビュー別", ""]
+    for vid in sorted(issues_by_view):
+        items = issues_by_view[vid]
+        if not items:
+            continue
+        lines.append(f"### {vid}")
+        lines.append("")
+        for cat, text in items:
+            lines.append(f"- [ ] [{cat}] {text}")
+        lines.append("")
+    return "\n".join(lines)
 
 
 def main() -> int:

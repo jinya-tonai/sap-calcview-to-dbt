@@ -93,6 +93,8 @@ python3 skills/sap-calcview-to-dbt/scripts/calcview_to_dbt_project.py folder/wit
 ```
 dbt_project/
 ├─ dbt_project.yml
+├─ ISSUES.md               … TODO・未対応項目を集約した課題一覧（チェックボックス形式）
+├─ inventory/              … ビューごとの棚卸し（チーム共有用）
 └─ models/
    ├─ _sources.yml          … 着地テーブル（マッピング表から）
    ├─ staging/stg_*.sql     … 着地テーブルごとのパススルーモデル

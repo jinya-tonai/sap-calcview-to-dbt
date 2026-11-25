@@ -3,7 +3,7 @@ name: sap-calcview-to-dbt
 description: Parse SAP HANA Graphical Calculation View XML (calculation.xml / .hdbcalculationview exported from HANA Studio) into an intermediate representation and a full inventory — node list, data sources, column-level lineage, expressions, variables/input parameters, and unsupported/manual items — and generate Snowflake SQL (one CTE per node) from it, as the first steps of reproducing SAP BW/HANA calculation-view logic as dbt models on Snowflake. Use when the user provides or mentions a calculation view XML, asks what a calculation view contains or depends on, wants it converted to SQL/dbt, or plans a HANA/BW to Snowflake+dbt migration. All processing is local and deterministic; never upload calculation view XML to external converter services.
 license: MIT
 metadata:
-  version: "0.6.0"
+  version: "0.7.0"
 ---
 
 # SAP Calculation View → dbt（棚卸し）
@@ -75,6 +75,7 @@ HANA Studio等から抜いた Graphical Calculation View の XML を、Snowflake
 
    - `models/_sources.yml`（着地テーブル）、`staging/stg_*`（パススルー）、`marts/<ビュー>`（最終モデル）、`marts/_marts.yml`（説明＋`key="true"` 由来の unique/not_null テスト。複合キーはコメントで案内）を生成する。
    - あわせて、プロジェクト直下の `inventory/`（プロファイルの `outputs.inventory_out`）にビューごとの棚卸し一式を同梱する。チーム共有が目的なので、dbt プロジェクトと一緒にコミットされる前提で扱う。
+   - プロジェクト直下に `ISSUES.md` も生成する。全ビューの TODO と未対応項目を区分別の件数サマリー＋ビュー別のチェックボックス形式で集約した課題一覧で、人間が読んで担当・対応を決めるためのもの。生成物なので手で編集せず、原因側を直して再生成する。
    - レイヤ名・接頭辞・着地先・INT分割ルールはプロジェクトプロファイルに従う。プロファイルの `node_count > N` ルールに当たるビューはノードを `intermediate/int_<ビュー>__<ノード>` に切り出す。
    - 配線は `ref()` / `source()` で行い、参照先が実在するか（dangling ref が無いか）を生成後に確認する。生成 SQL は Jinja をスタブ化して sqlglot でパース検証できる。
    - 生成後、プロファイルまたはプロジェクトに linter 設定（sqlfluff 等）があれば、生成 SQL をそれで検証して結果を報告する。規約に反する出力は、直せるものは直し、直せないものは TODO として残す。

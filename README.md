@@ -95,6 +95,8 @@ python3 skills/sap-calcview-to-dbt/scripts/calcview_to_dbt_project.py folder/wit
 ```
 dbt_project/
 ├─ dbt_project.yml
+├─ ISSUES.md               … all TODOs / manual items as one checkbox backlog
+├─ inventory/              … per-view inventory (shared with the team)
 └─ models/
    ├─ _sources.yml          … landed tables (from the mapping table)
    ├─ staging/stg_*.sql     … one passthrough model per landed table
