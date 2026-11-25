@@ -3,7 +3,7 @@ name: sap-calcview-to-dbt
 description: Parse SAP HANA Graphical Calculation View XML (calculation.xml / .hdbcalculationview exported from HANA Studio) into an intermediate representation and a full inventory — node list, data sources, column-level lineage, expressions, variables/input parameters, and unsupported/manual items — and generate Snowflake SQL (one CTE per node) from it, as the first steps of reproducing SAP BW/HANA calculation-view logic as dbt models on Snowflake. Use when the user provides or mentions a calculation view XML, asks what a calculation view contains or depends on, wants it converted to SQL/dbt, or plans a HANA/BW to Snowflake+dbt migration. All processing is local and deterministic; never upload calculation view XML to external converter services.
 license: MIT
 metadata:
-  version: "0.2.2"
+  version: "0.3.0"
 ---
 
 # SAP Calculation View → dbt（棚卸し）
@@ -16,6 +16,18 @@ HANA Studio等から抜いた Graphical Calculation View の XML を、Snowflake
 - **決定的処理。** パーサはテンプレート変換のみで、LLMに構造解釈をさせない。
 - **黙って落とさない。** 変換できない要素・解決できない参照は `unsupported.md` と IR の `extras` に必ず残す。
 - **データ型の正は着地側。** HANA側の宣言ではなく、TROCCO等で着地した側（CDS OData `$metadata` 等）を正とする（詳細は `references/` の再現仕様 §4）。
+
+## プロジェクトプロファイル（最初に聞く）
+
+着地先や dbt のレイヤ構成は案件ごとに違う。前提を決め打ちせず、**新しい案件の初回生成の前に、次をユーザーに聞いて** `project_profile.yaml` として案件の作業フォルダに保存する（雛形は `references/project-profile-template.yaml`）。保存済みの案件では聞き直さず、プロファイルに従う。プロファイルが無いまま生成する場合は、その旨と仮置きした前提を報告に必ず書く。
+
+- **着地先**: RAW のデータベース名・スキーマ名、着地テーブル命名（同名／接頭辞／ケース変換）
+- **ビュー参照の扱い**: 他ビューのデータソースになっている Calculation View を、変換後モデルに接続するか、着地済みテーブルとして扱うか
+- **dbt レイヤ構成**: レイヤの名前と接頭辞（`stg_`/`int_`/`marts` 等は一例にすぎない）、`_sources.yml` の置き場
+- **INT / MART の分割方針**: 何を intermediate モデルに切り出し、何を mart にするか（例: ノード数しきい値、複数ビューから共有されるノードは int、最終ノードは mart）
+- **案件固有の規約**: クライアント（MANDT）フィルタの扱い、通貨・単位換算の方針
+
+聞いた答えは mapping.csv の `sf_database` / `sf_schema` や、MVP-3 のレイヤ分割に反映する。答えが得られなかった項目は空欄＋TODOのままにし、勝手に埋めない。
 
 ## 手順
 

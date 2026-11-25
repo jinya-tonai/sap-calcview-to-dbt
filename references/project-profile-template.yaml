@@ -1,0 +1,32 @@
+# Project profile for sap-calcview-to-dbt.
+# The skill asks these questions ONCE per project, before the first
+# generation run, and stores the answers in the project's working folder
+# as project_profile.yaml. Later runs reuse it without re-asking.
+# dbt layer layouts and landing conventions differ per project, so
+# nothing here has a universal default.
+
+landing:
+  database: ""        # Snowflake database where source tables land
+  raw_schema: ""      # schema for landed SAP tables (used in mapping.csv)
+  table_naming: same  # same | prefixed | lower_snake  (landing table names)
+
+view_references:
+  # Calculation views used as data sources of other views:
+  connect_to: models  # models (converted dbt models) | landed_tables
+
+dbt_layers:
+  # Layer names/prefixes are per-project. Example below is just a shape.
+  staging:     { dir: staging,      prefix: stg_ }
+  intermediate: { dir: intermediate, prefix: int_ }
+  marts:       { dir: marts,        prefix: "" }
+  sources_yml: models/_sources.yml
+
+layer_split:
+  # What becomes an intermediate model, what stays a CTE, what is a mart.
+  int_when: []        # e.g. "node_count > 10", "node shared by 2+ views"
+  mart_is: final_node # final_node | per_business_domain
+  notes: ""
+
+conventions:
+  client_filter: ""   # how the SAP client (MANDT) filter is handled
+  currency_uom: ""    # policy for currency / UOM conversion (spec section 9)

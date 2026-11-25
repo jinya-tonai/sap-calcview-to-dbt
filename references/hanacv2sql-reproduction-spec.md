@@ -418,6 +418,10 @@ Calculation:scenario
 
 ## 10. 出力仕様（dbtプロジェクト）
 
+> 注: 以下の構成は既定形。レイヤ名・接頭辞・着地先 DB/スキーマ・INT/MART の
+> 分割方針は案件ごとに異なるため、スキルが初回に聞いて確定した
+> `project_profile.yaml`（雛形: `project-profile-template.yaml`）が優先する。
+
 ### 10.1 構成
 
 ```
