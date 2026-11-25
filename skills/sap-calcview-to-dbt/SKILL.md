@@ -3,7 +3,7 @@ name: sap-calcview-to-dbt
 description: Parse SAP HANA Graphical Calculation View XML (calculation.xml / .hdbcalculationview exported from HANA Studio) into an intermediate representation and a full inventory — node list, data sources, column-level lineage, expressions, variables/input parameters, and unsupported/manual items — and generate Snowflake SQL (one CTE per node) from it, as the first steps of reproducing SAP BW/HANA calculation-view logic as dbt models on Snowflake. Use when the user provides or mentions a calculation view XML, asks what a calculation view contains or depends on, wants it converted to SQL/dbt, or plans a HANA/BW to Snowflake+dbt migration. All processing is local and deterministic; never upload calculation view XML to external converter services.
 license: MIT
 metadata:
-  version: "0.5.0"
+  version: "0.5.1"
 ---
 
 # SAP Calculation View → dbt（棚卸し）
@@ -27,6 +27,8 @@ HANA Studio等から抜いた Graphical Calculation View の XML を、Snowflake
 - **dbt レイヤ構成**: レイヤの名前と接頭辞（`stg_`/`int_`/`marts` 等は一例にすぎない）、`_sources.yml` の置き場
 - **INT / MART の分割方針**: 何を intermediate モデルに切り出し、何を mart にするか（例: ノード数しきい値、複数ビューから共有されるノードは int、最終ノードは mart）
 - **案件固有の規約**: クライアント（MANDT）フィルタの扱い、通貨・単位換算の方針
+- **既存の linter / フォーマッタ**: sqlfluff 等を使っているか、その設定ファイル（`.sqlfluff` 等）と dialect。プロファイルに無くても、作業フォルダに設定ファイルがあればそれを正とする
+- **dbt のコーディング規約**: SQL スタイル（キーワードケース、インデント、CTE の書き方）、モデル命名の追加ルール、ドキュメント／テストの要求水準、使用中パッケージ（dbt_utils 等）
 
 聞いた答えは mapping.csv の `sf_database` / `sf_schema` や、MVP-3 のレイヤ分割に反映する。答えが得られなかった項目は空欄＋TODOのままにし、勝手に埋めない。
 
@@ -73,7 +75,8 @@ HANA Studio等から抜いた Graphical Calculation View の XML を、Snowflake
    - `models/_sources.yml`（着地テーブル）、`staging/stg_*`（パススルー）、`marts/<ビュー>`（最終モデル）、`marts/_marts.yml`（説明＋`key="true"` 由来の unique/not_null テスト。複合キーはコメントで案内）を生成する。
    - レイヤ名・接頭辞・着地先・INT分割ルールはプロジェクトプロファイルに従う。プロファイルの `node_count > N` ルールに当たるビューはノードを `intermediate/int_<ビュー>__<ノード>` に切り出す。
    - 配線は `ref()` / `source()` で行い、参照先が実在するか（dangling ref が無いか）を生成後に確認する。生成 SQL は Jinja をスタブ化して sqlglot でパース検証できる。
-   - dbt 本体の実行（`dbt compile` 等）はこのスキルの範囲外。生成物の検証はパース＋参照整合まで。
+   - 生成後、プロファイルまたはプロジェクトに linter 設定（sqlfluff 等）があれば、生成 SQL をそれで検証して結果を報告する。規約に反する出力は、直せるものは直し、直せないものは TODO として残す。
+   - dbt 本体の実行（`dbt compile` 等）はこのスキルの範囲外。生成物の検証はパース＋参照整合＋linter まで。
 7. **次の段階を案内する。** 実データ突合（仕様 §11）はBW側の出力サンプルが要る。通貨換算・階層・制限メジャーは引き続き手作業範囲（仕様 §9）。
 
 ## リファレンス

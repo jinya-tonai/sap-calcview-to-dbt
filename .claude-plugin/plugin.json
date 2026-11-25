@@ -1,8 +1,17 @@
 {
   "name": "sap-calcview-to-dbt",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Parse SAP HANA Graphical Calculation View XML into an inventory and Snowflake SQL, and generate a dbt project — locally and deterministically, without uploading client XML to external services.",
-  "author": { "name": "jinya-tonai" },
+  "author": {
+    "name": "jinya-tonai"
+  },
   "license": "MIT",
-  "keywords": ["sap", "hana", "calculation-view", "dbt", "snowflake", "bw"]
+  "keywords": [
+    "sap",
+    "hana",
+    "calculation-view",
+    "dbt",
+    "snowflake",
+    "bw"
+  ]
 }

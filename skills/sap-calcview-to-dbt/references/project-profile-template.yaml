@@ -38,3 +38,17 @@ layer_split:
 conventions:
   client_filter: ""   # how the SAP client (MANDT) filter is handled
   currency_uom: ""    # policy for currency / UOM conversion (spec section 9)
+
+lint:
+  # Existing linter/formatter setup of the target project, if any.
+  # Generated SQL is checked against it after generation.
+  tool: sqlfluff      # dummy: sqlfluff | none
+  config: .sqlfluff   # config file the project already uses
+  dialect: snowflake
+
+dbt_conventions:
+  # The target project's own dbt/SQL coding conventions, if any exist.
+  sql_style: ""       # e.g. keyword case, indent width, CTE style
+  model_naming: ""    # naming rules beyond the layer prefixes above
+  docs_tests: ""      # documentation / test requirements for new models
+  packages: []        # dbt packages in use, e.g. dbt_utils
