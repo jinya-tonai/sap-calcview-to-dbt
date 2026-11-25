@@ -25,7 +25,7 @@ SAP BW/HANA の Calculation View ロジックを **Snowflake 上の dbt モデ�
 |---|---|
 | MVP-1: パーサ + 棚卸し | ✅ 実装済み |
 | MVP-2: ノード → SQL 変換（本リポジトリ） | ✅ 実装済み |
-| MVP-3: dbt プロジェクト生成 | 予定 |
+| MVP-3: dbt プロジェクト生成 | ✅ 実装済み |
 
 設計: [references/hanacv2sql-reproduction-spec.md](references/hanacv2sql-reproduction-spec.md)
 （HANACV2SQL の変換パイプラインを TROCCO → Snowflake → dbt 構成向けに
@@ -65,6 +65,27 @@ python3 scripts/calcview_to_sql.py folder/with/views/ --out output_sql --mapping
 変換できないものは SQL の冒頭に `-- TODO` として残ります。黙って落とす
 ことはありません。マッピング表がない場合、データソースはプレースホルダ名
 になり、TODO としてフラグが立ちます。
+
+dbt プロジェクト生成（MVP-3）— sources / staging / intermediate / marts を
+`ref()` / `source()` で配線し、`key="true"` 属性からキーテストも生成します。
+着地先 DB・スキーマ、レイヤ名、intermediate への分割ルールはプロジェクト
+プロファイルで決めます（`references/project-profile-template.yaml` を
+作業フォルダに `project_profile.yaml` としてコピー。収録値は汎用ダミー）。
+
+```bash
+python3 scripts/calcview_to_dbt_project.py folder/with/views/ --out dbt_project \
+    --mapping mapping.csv --profile project_profile.yaml
+```
+
+```
+dbt_project/
+├─ dbt_project.yml
+└─ models/
+   ├─ _sources.yml          … 着地テーブル（マッピング表から）
+   ├─ staging/stg_*.sql     … 着地テーブルごとのパススルーモデル
+   ├─ intermediate/int_*.sql … 大きいビューから切り出したノード（プロファイルのルール）
+   └─ marts/<view>.sql      … ビューごとの最終モデル＋ _marts.yml（テスト）
+```
 
 出力（ビューごと）:
 
@@ -108,6 +129,7 @@ python3 scripts/calcview_to_sql.py examples --out output_sql
 SKILL.md                  … スキル定義（エージェントが読む）
 scripts/calcview_parser.py … MVP-1 パーサ（標準ライブラリのみ）
 scripts/calcview_to_sql.py … MVP-2 SQL ジェネレータ（標準ライブラリのみ）
+scripts/calcview_to_dbt_project.py … MVP-3 dbt プロジェクト生成（標準ライブラリのみ）
 scripts/expr_translate.py  … HANA 式 → Snowflake 変換（仕様 §7）
 references/               … 再現仕様（設計の正本）
 examples/                 … フィクスチャ + 期待サマリー・SQL スナップショット

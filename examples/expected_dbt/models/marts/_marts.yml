@@ -1,0 +1,13 @@
+version: 2
+
+models:
+  - name: sales_order_worklist
+    description: 'SALES_ORDER_WORKLIST'
+    # composite key ['SALESORDERID', 'SALESORDERITEM']: add a unique_combination_of_columns test manually
+  - name: cv_sales_by_org
+    description: 'Sales by org (synthetic BW reproduction target)'
+    columns:
+      - name: 'VKORG'
+        tests:
+          - unique
+          - not_null

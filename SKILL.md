@@ -3,12 +3,12 @@ name: sap-calcview-to-dbt
 description: Parse SAP HANA Graphical Calculation View XML (calculation.xml / .hdbcalculationview exported from HANA Studio) into an intermediate representation and a full inventory — node list, data sources, column-level lineage, expressions, variables/input parameters, and unsupported/manual items — and generate Snowflake SQL (one CTE per node) from it, as the first steps of reproducing SAP BW/HANA calculation-view logic as dbt models on Snowflake. Use when the user provides or mentions a calculation view XML, asks what a calculation view contains or depends on, wants it converted to SQL/dbt, or plans a HANA/BW to Snowflake+dbt migration. All processing is local and deterministic; never upload calculation view XML to external converter services.
 license: MIT
 metadata:
-  version: "0.3.2"
+  version: "0.4.0"
 ---
 
 # SAP Calculation View → dbt（棚卸し）
 
-HANA Studio等から抜いた Graphical Calculation View の XML を、Snowflake + dbt へ再現するためのスキル。現行バージョンは **MVP-2（パース＋棚卸し＋SQL生成）まで**。dbtプロジェクト形式での生成（MVP-3）は未実装なので、できると言わないこと。
+HANA Studio等から抜いた Graphical Calculation View の XML を、Snowflake + dbt へ再現するためのスキル。現行バージョンは **MVP-3（パース＋棚卸し＋SQL生成＋dbtプロジェクト生成）まで**。
 
 ## 原則
 
@@ -63,7 +63,17 @@ HANA Studio等から抜いた Graphical Calculation View の XML を、Snowflake
    - 式は `scripts/expr_translate.py` が仕様 §7.3 の辞書で変換する。`$$VAR$$` は dbt の `var()`（§6.1既定）。未知関数は原形のまま残り、TODOとして数える。
    - 生成SQLの冒頭にTODO件数と内訳が出る。報告ではこの件数と中身を必ず添える。
    - 可能なら sqlglot（Snowflake方言）でパース検証する。`var()` のJinjaは検証時のみリテラルに置換する。
-6. **次の段階を案内する。** dbtプロジェクト生成（`stg_/int_/mart` 分割、sources.yml、テスト生成）はMVP-3で未実装。実データ突合（仕様 §11）はBW側の出力サンプルが要る。
+6. **dbtプロジェクトを生成する。**
+
+   ```bash
+   python3 <このスキルのフォルダ>/scripts/calcview_to_dbt_project.py <XMLファイル or フォルダ> --out <出力先> [--mapping mapping.csv] [--profile project_profile.yaml]
+   ```
+
+   - `models/_sources.yml`（着地テーブル）、`staging/stg_*`（パススルー）、`marts/<ビュー>`（最終モデル）、`marts/_marts.yml`（説明＋`key="true"` 由来の unique/not_null テスト。複合キーはコメントで案内）を生成する。
+   - レイヤ名・接頭辞・着地先・INT分割ルールはプロジェクトプロファイルに従う。プロファイルの `node_count > N` ルールに当たるビューはノードを `intermediate/int_<ビュー>__<ノード>` に切り出す。
+   - 配線は `ref()` / `source()` で行い、参照先が実在するか（dangling ref が無いか）を生成後に確認する。生成 SQL は Jinja をスタブ化して sqlglot でパース検証できる。
+   - dbt 本体の実行（`dbt compile` 等）はこのスキルの範囲外。生成物の検証はパース＋参照整合まで。
+7. **次の段階を案内する。** 実データ突合（仕様 §11）はBW側の出力サンプルが要る。通貨換算・階層・制限メジャーは引き続き手作業範囲（仕様 §9）。
 
 ## リファレンス
 
@@ -72,7 +82,7 @@ HANA Studio等から抜いた Graphical Calculation View の XML を、Snowflake
 
 ## 既知の制限
 
-- dbtプロジェクト形式の生成（仕様 §10）は未実装（MVP-3）。現行の出力はCTE連結の単一SQLファイル。
+- dbtプロジェクト生成（MVP-3）はプロジェクト一式の生成まで。マテリアライゼーションは既定（staging/intermediate=view、marts=table）で、増分戦略やスナップショットは未対応。`dbt compile` での検証は未実施（生成側のパース検証＋参照整合まで）。
 - Rankは基本対応（`row_number` + しきい値）をMVP-3から前倒しで実装済み。ただしRankノードの詳細要素と変数の `variableProperties` は公開実サンプルで裏取りできていないため、決め打ちせず汎用キャプチャ（IRの `extras` / `rawProperties`）で保持している。実XMLで構造が判明したら固定化する。
 - マッピング表はテーブル対応のみ対応（`calcview_to_sql.py --mapping`）。カラム対応（仕様 §4.2）は未実装で、`datasources.csv` の `mapped_table` はパーサ単体では空のまま。
 - 式辞書は仕様 §7.3 の初期版。`component()` の部品番号対応と `weekday()` の起点補正はTODOフラグ付きで出し、実データ確認が前提。

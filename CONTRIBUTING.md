@@ -32,6 +32,9 @@ diff /tmp/out_parser/SALES_ORDER_WORKLIST/summary.md examples/expected/SALES_ORD
 diff /tmp/out_parser/CV_SALES_BY_ORG/summary.md      examples/expected/CV_SALES_BY_ORG.summary.md
 diff /tmp/out_sql/SALES_ORDER_WORKLIST/SALES_ORDER_WORKLIST.sql examples/expected/SALES_ORDER_WORKLIST.sql
 diff /tmp/out_sql/CV_SALES_BY_ORG/CV_SALES_BY_ORG.sql           examples/expected/CV_SALES_BY_ORG.sql
+python3 scripts/calcview_to_dbt_project.py examples --out /tmp/out_dbt \
+    --profile references/project-profile-template.yaml
+diff -r /tmp/out_dbt examples/expected_dbt
 ```
 
 If your change intentionally alters the output, regenerate the expected
@@ -54,9 +57,9 @@ Jinja with a literal first).
 - **Node semantics**: text joins, referential joins, temporal joins,
   currency/UOM conversion detection — currently reported as manual work
   (spec §9). Designs or partial implementations welcome.
-- **MVP-3**: dbt project generation (spec §10) — `stg_` / `int_` /
-  marts layout, `_sources.yml`, and tests derived from `key="true"`
-  attributes.
+- **MVP-3 follow-ups**: reconciliation models (spec §11), column-level
+  mapping (spec §4.2), and materialisation/incremental strategies for
+  the generated dbt project.
 
 ## Pull requests
 

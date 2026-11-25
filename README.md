@@ -29,7 +29,7 @@ SAP BW/HANA の Graphical Calculation View を Snowflake + dbt で再現する�
 |---|---|
 | MVP-1: parser + inventory | ✅ Implemented |
 | MVP-2: node → SQL conversion (this repository) | ✅ Implemented |
-| MVP-3: dbt project generation | Planned |
+| MVP-3: dbt project generation | ✅ Implemented |
 
 Design: [references/hanacv2sql-reproduction-spec.md](references/hanacv2sql-reproduction-spec.md)
 (a reproduction spec of the HANACV2SQL conversion pipeline, adapted to a
@@ -70,6 +70,28 @@ Expressions are translated per the spec §7.3 dictionary
 Anything unconvertible stays in the SQL as a `-- TODO` header entry —
 never silently dropped. Without a mapping table, data sources use
 placeholder names and are flagged as TODOs.
+
+dbt project generation (MVP-3) — sources, staging, intermediate and
+mart models wired with `ref()` / `source()`, plus key tests derived
+from `key="true"` attributes. Landing database/schema, layer names and
+the intermediate-split rules come from a project profile file (copy
+`references/project-profile-template.yaml` into your working folder as
+`project_profile.yaml`; the shipped values are generic dummy defaults):
+
+```bash
+python3 scripts/calcview_to_dbt_project.py folder/with/views/ --out dbt_project \
+    --mapping mapping.csv --profile project_profile.yaml
+```
+
+```
+dbt_project/
+├─ dbt_project.yml
+└─ models/
+   ├─ _sources.yml          … landed tables (from the mapping table)
+   ├─ staging/stg_*.sql     … one passthrough model per landed table
+   ├─ intermediate/int_*.sql … nodes split out of large views (profile rule)
+   └─ marts/<view>.sql      … final model per view, plus _marts.yml (tests)
+```
 
 Output, per view:
 
@@ -113,6 +135,7 @@ python3 scripts/calcview_to_sql.py examples --out output_sql
 SKILL.md                  … skill definition (read by agents)
 scripts/calcview_parser.py … the MVP-1 parser (stdlib only)
 scripts/calcview_to_sql.py … the MVP-2 SQL generator (stdlib only)
+scripts/calcview_to_dbt_project.py … the MVP-3 dbt project generator (stdlib only)
 scripts/expr_translate.py  … HANA expression → Snowflake translator (spec §7)
 references/               … the reproduction spec (design source of truth)
 examples/                 … fixtures + expected summaries and SQL snapshots

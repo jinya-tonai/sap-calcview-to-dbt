@@ -421,6 +421,10 @@ Calculation:scenario
 > 注: 以下の構成は既定形。レイヤ名・接頭辞・着地先 DB/スキーマ・INT/MART の
 > 分割方針は案件ごとに異なるため、スキルが初回に聞いて確定した
 > `project_profile.yaml`（雛形: `project-profile-template.yaml`）が優先する。
+>
+> 実装状況（v0.4.0）: `scripts/calcview_to_dbt_project.py` で本節の構成を
+> 生成する。分割はプロファイルの `node_count > N` ルール（ビュー単位で
+> 全ノードを int 化）に簡略化しており、§10.2 のノード単位の判断は今後の拡張。
 
 ### 10.1 構成
 
