@@ -4,7 +4,7 @@
 
 **SAP HANA Graphical Calculation View** の XML（`calculation.xml` /
 `.hdbcalculationview`、HANA Studio からエクスポートしたもの）を中間表現と
-棚卸し一式にパースし、Snowflake SQL を生成するエージェントスキル。
+棚卸し一式にパースし、Snowflake SQL を生成する Claude Code 用スキル。
 SAP BW/HANA の Calculation View ロジックを **Snowflake 上の dbt モデル**
 として再現するための第一歩です。
 
@@ -23,17 +23,33 @@ SAP BW/HANA の Calculation View ロジックを **Snowflake 上の dbt モデ�
 （HANACV2SQL の変換パイプラインを TROCCO → Snowflake → dbt 構成向けに
 再現した仕様書。日本語）
 
-## スキルとしてインストール
+## インストール
 
-エージェントのスキルディレクトリに clone してください（例: Claude Code）。
+Claude Code のスキルディレクトリに clone してください。
 
 ```bash
+# 個人用（全プロジェクトで使える）
 git clone https://github.com/jinya-tonai/sap-calcview-to-dbt ~/.claude/skills/sap-calcview-to-dbt
+
+# プロジェクト単位
+git clone https://github.com/jinya-tonai/sap-calcview-to-dbt <project>/.claude/skills/sap-calcview-to-dbt
 ```
 
-パーサ単体でも使えます。必要なのは Python 3 だけです（標準ライブラリのみ）。
-
 ## 使い方
+
+Claude Code では、スラッシュコマンドで起動して Calculation View の
+XML を渡します。
+
+```
+/sap-calcview-to-dbt path/to/calculation.xml
+```
+
+普通に頼んでも起動します。「この Calculation View を Snowflake SQL に
+変換して」「これらのビューから dbt プロジェクトを作って」のような
+依頼に自動でマッチします。
+
+内部では Python スクリプト 3 本を動かしています（標準ライブラリのみ、
+Python 3.10+）。スクリプト単体でも実行できます。
 
 棚卸し:
 

@@ -2,7 +2,7 @@
 
 **English** | [日本語](README.ja.md)
 
-An agent skill that parses **SAP HANA Graphical Calculation View** XML
+A Claude Code skill that parses **SAP HANA Graphical Calculation View** XML
 (`calculation.xml` / `.hdbcalculationview`, as exported from HANA Studio)
 into an intermediate representation and a complete inventory — the first
 step of reproducing SAP BW/HANA calculation-view logic as **dbt models on
@@ -23,18 +23,34 @@ Design: [references/hanacv2sql-reproduction-spec.md](references/hanacv2sql-repro
 (a reproduction spec of the HANACV2SQL conversion pipeline, adapted to a
 TROCCO → Snowflake → dbt stack).
 
-## Install as a skill
+## Install
 
-Clone this repository into your agent's skills directory, e.g. for
-Claude Code:
+Clone this repository into your Claude Code skills directory:
 
 ```bash
+# personal — available in all your projects
 git clone https://github.com/jinya-tonai/sap-calcview-to-dbt ~/.claude/skills/sap-calcview-to-dbt
+
+# or per project
+git clone https://github.com/jinya-tonai/sap-calcview-to-dbt <project>/.claude/skills/sap-calcview-to-dbt
 ```
 
-Or just use the parser directly — it only needs Python 3 (stdlib only).
-
 ## Usage
+
+In Claude Code, invoke the skill with a slash command and point it at
+your calculation view XML:
+
+```
+/sap-calcview-to-dbt path/to/calculation.xml
+```
+
+You can also just describe the task — the skill triggers automatically
+when you ask about converting a calculation view, e.g. "convert this
+calculation view to Snowflake SQL" or "generate a dbt project from
+these views".
+
+Under the hood the skill runs three Python scripts (stdlib only,
+Python 3.10+). They also work standalone:
 
 Inventory:
 
