@@ -1,0 +1,8 @@
+node_id,type,inputs,output_columns,has_filter,calculated_columns,join_type,join_attributes
+Proj_Header,ProjectionView,SD.VBAK,4,True,1,,
+Proj_Item,ProjectionView,SD.VBAP,3,False,1,,
+Join_Main,JoinView,Proj_Header|Proj_Item,4,False,0,leftOuter,VBELN
+Agg_Sales,AggregationView,Join_Main,3,False,0,,
+Proj_Legacy,ProjectionView,SD.LEGACY,4,False,0,,
+Union_All,UnionView,Agg_Sales|Proj_Legacy,4,False,0,,
+Rank_Top,RankView,Union_All,4,False,0,,

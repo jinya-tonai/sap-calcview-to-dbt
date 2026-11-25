@@ -1,0 +1,6 @@
+output_column,kind,chain,origin_datasource,origin_column,terminal_kind
+VKORG,attribute,Rank_Top.VKORG -> Union_All.VKORG -> Agg_Sales.VKORG -> Join_Main.VKORG -> Proj_Header.VKORG -> SD.VBAK.VKORG,SD.VBAK,VKORG,source
+MATNR,attribute,Rank_Top.MATNR -> Union_All.MATNR -> Agg_Sales.MATNR -> Join_Main.MATNR -> Proj_Item.MATNR -> SD.VBAP.MATNR,SD.VBAP,MATNR,source
+SOURCE_KBN,attribute,Rank_Top.SOURCE_KBN -> Union_All.SOURCE_KBN,,,constant
+GROSS,measure,Rank_Top.GROSS -> Union_All.GROSS -> Agg_Sales.GROSS -> Join_Main.LINE_AMOUNT -> Proj_Item.LINE_AMOUNT,,,calculated
+GROSS_PER_ITEM,calculated_attribute,logicalModel (calculated),,,calculated

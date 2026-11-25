@@ -33,10 +33,12 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from calcview_parser import parse, slugify  # noqa: E402
+from calcview_parser import parse, slugify, process as write_inventory  # noqa: E402
 from calcview_to_sql import Generator, snake, qident  # noqa: E402
 
 DEFAULT_PROFILE = {
+    "outputs": {"parser_out": "output", "sql_out": "output_sql",
+                "dbt_out": "dbt_project", "inventory_out": "inventory"},
     "landing": {"database": "RAW", "raw_schema": "SAP", "table_naming": "same"},
     "view_references": {"connect_to": "models"},
     "dbt_layers": {
@@ -375,6 +377,15 @@ def build_project(files: list[Path], out: Path, mapping_rows: dict,
     (out / "dbt_project.yml").write_text("\n".join(proj), encoding="utf-8")
     report["intermediateModels"] = total_int
     report["totalTodos"] = sum(v["todoItems"] for v in report["views"])
+
+    # The inventory is a shared team artifact: embed it in the project
+    # so conversion decisions (and their corrections) are visible to
+    # everyone working on the project, not just whoever ran the parser.
+    inv_rel = profile.get("outputs", {}).get("inventory_out", "inventory")
+    for f in files:
+        write_inventory(f, out / inv_rel)
+    report["inventoryDir"] = inv_rel
+    report["inventoryViews"] = len(files)
     return report
 
 

@@ -1,0 +1,4 @@
+node_id,type,inputs,output_columns,has_filter,calculated_columns,join_type,join_attributes
+Sales,JoinView,SO.Header|SO.Item,9,False,0,inner,SALESORDERID
+Product,JoinView,Sales|sap.hana.democontent.epm.models::PROD,13,False,0,inner,PRODUCTID
+Partner,JoinView,Product|sap.hana.democontent.epm.models::BUYER,16,False,0,inner,PARTNERID

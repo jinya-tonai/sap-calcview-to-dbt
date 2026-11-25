@@ -1,0 +1,17 @@
+output_column,kind,chain,origin_datasource,origin_column,terminal_kind
+SALESORDERID,attribute,Partner.SALESORDERID -> Product.SALESORDERID -> Sales.SALESORDERID -> SO.Header.SALESORDERID,SO.Header,SALESORDERID,source
+PARTNERID,attribute,Partner.PARTNERID -> Product.PARTNERID -> Sales.PARTNERID -> SO.Header.PARTNERID,SO.Header,PARTNERID,source
+LIFECYCLESTATUS,attribute,Partner.LIFECYCLESTATUS -> Product.LIFECYCLESTATUS -> Sales.LIFECYCLESTATUS -> SO.Header.LIFECYCLESTATUS,SO.Header,LIFECYCLESTATUS,source
+CURRENCY,attribute,Partner.CURRENCY -> Product.CURRENCY -> Sales.CURRENCY -> SO.Header.CURRENCY,SO.Header,CURRENCY,source
+GROSSAMOUNT,attribute,Partner.GROSSAMOUNT -> Product.GROSSAMOUNT -> Sales.GROSSAMOUNT -> SO.Header.GROSSAMOUNT,SO.Header,GROSSAMOUNT,source
+SALESORDERITEM,attribute,Partner.SALESORDERITEM -> Product.SALESORDERITEM -> Sales.SALESORDERITEM -> SO.Item.SALESORDERITEM,SO.Item,SALESORDERITEM,source
+PRODUCTID,attribute,Partner.PRODUCTID -> Product.PRODUCTID -> Sales.PRODUCTID -> SO.Item.PRODUCTID,SO.Item,PRODUCTID,source
+QUANTITY,attribute,Partner.QUANTITY -> Product.QUANTITY -> Sales.QUANTITY -> SO.Item.QUANTITY,SO.Item,QUANTITY,source
+QUANTITYUNIT,attribute,Partner.QUANTITYUNIT -> Product.QUANTITYUNIT -> Sales.QUANTITYUNIT -> SO.Item.QUANTITYUNIT,SO.Item,QUANTITYUNIT,source
+TYPECODE,attribute,Partner.TYPECODE -> Product.TYPECODE -> sap.hana.democontent.epm.models::PROD.PRODUCT_TYPECODE,sap.hana.democontent.epm.models::PROD,PRODUCT_TYPECODE,source
+CATEGORY,attribute,Partner.CATEGORY -> Product.CATEGORY -> sap.hana.democontent.epm.models::PROD.PRODUCT_CATEGORY,sap.hana.democontent.epm.models::PROD,PRODUCT_CATEGORY,source
+PRODUCTNAME,attribute,Partner.PRODUCTNAME -> Product.PRODUCTNAME -> sap.hana.democontent.epm.models::PROD.PRODUCT_NAME,sap.hana.democontent.epm.models::PROD,PRODUCT_NAME,source
+PRODUCTDESC,attribute,Partner.PRODUCTDESC -> Product.PRODUCTDESC -> sap.hana.democontent.epm.models::PROD.PRODUCT_DESCRIPTION,sap.hana.democontent.epm.models::PROD,PRODUCT_DESCRIPTION,source
+COMPANYNAME,attribute,Partner.COMPANYNAME -> sap.hana.democontent.epm.models::BUYER.COMPANYNAME,sap.hana.democontent.epm.models::BUYER,COMPANYNAME,source
+CITY,attribute,Partner.CITY -> sap.hana.democontent.epm.models::BUYER.CITY,sap.hana.democontent.epm.models::BUYER,CITY,source
+POSTALCODE,attribute,Partner.POSTALCODE -> sap.hana.democontent.epm.models::BUYER.POSTALCODE,sap.hana.democontent.epm.models::BUYER,POSTALCODE,source

@@ -1,0 +1,651 @@
+{
+  "sourceFile": "SALES_ORDER_WORKLIST.hdbcalculationview",
+  "scenario": {
+    "id": "sap.hana.democontent.epm.models::SALES_ORDER_WORKLIST",
+    "type": "TREE_BASED",
+    "dataCategory": "DEFAULT",
+    "outputViewType": "Projection",
+    "defaultClient": "$$client$$",
+    "enforceSqlExecution": "false",
+    "schemaVersion": "3.0",
+    "description": "SALES_ORDER_WORKLIST"
+  },
+  "dataSources": [
+    {
+      "id": "SO.Header",
+      "resourceUri": "SO.Header",
+      "type": null,
+      "mappedTable": null
+    },
+    {
+      "id": "SO.Item",
+      "resourceUri": "SO.Item",
+      "type": null,
+      "mappedTable": null
+    },
+    {
+      "id": "sap.hana.democontent.epm.models::PROD",
+      "resourceUri": "sap.hana.democontent.epm.models::PROD",
+      "type": null,
+      "mappedTable": null
+    },
+    {
+      "id": "sap.hana.democontent.epm.models::BUYER",
+      "resourceUri": "sap.hana.democontent.epm.models::BUYER",
+      "type": null,
+      "mappedTable": null
+    }
+  ],
+  "variables": [],
+  "nodes": [
+    {
+      "id": "Sales",
+      "type": "JoinView",
+      "inputs": [
+        {
+          "node": "SO.Header",
+          "mappings": [
+            {
+              "target": "SALESORDERID",
+              "source": "SALESORDERID",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "PARTNERID",
+              "source": "PARTNER.PARTNERID",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "LIFECYCLESTATUS",
+              "source": "LIFECYCLESTATUS",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "CURRENCY",
+              "source": "CURRENCY",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "GROSSAMOUNT",
+              "source": "GROSSAMOUNT",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            }
+          ]
+        },
+        {
+          "node": "SO.Item",
+          "mappings": [
+            {
+              "target": "SALESORDERITEM",
+              "source": "SALESORDERITEM",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "PRODUCTID",
+              "source": "PRODUCT.PRODUCTID",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "QUANTITY",
+              "source": "QUANTITY",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "QUANTITYUNIT",
+              "source": "QUANTITYUNIT",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "SALESORDERID",
+              "source": "SALESORDERID",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            }
+          ]
+        }
+      ],
+      "viewAttributes": [
+        {
+          "id": "SALESORDERID"
+        },
+        {
+          "id": "PARTNERID"
+        },
+        {
+          "id": "LIFECYCLESTATUS"
+        },
+        {
+          "id": "CURRENCY"
+        },
+        {
+          "id": "GROSSAMOUNT"
+        },
+        {
+          "id": "SALESORDERITEM"
+        },
+        {
+          "id": "PRODUCTID"
+        },
+        {
+          "id": "QUANTITY"
+        },
+        {
+          "id": "QUANTITYUNIT"
+        }
+      ],
+      "calculatedAttributes": [],
+      "filter": null,
+      "join": {
+        "joinType": "inner",
+        "joinAttributes": [
+          "SALESORDERID"
+        ]
+      },
+      "aggregation": null,
+      "union": null,
+      "rank": null,
+      "extras": {
+        "@joinType": "inner"
+      }
+    },
+    {
+      "id": "Product",
+      "type": "JoinView",
+      "inputs": [
+        {
+          "node": "Sales",
+          "mappings": [
+            {
+              "target": "SALESORDERID",
+              "source": "SALESORDERID",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "PARTNERID",
+              "source": "PARTNERID",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "LIFECYCLESTATUS",
+              "source": "LIFECYCLESTATUS",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "CURRENCY",
+              "source": "CURRENCY",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "GROSSAMOUNT",
+              "source": "GROSSAMOUNT",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "SALESORDERITEM",
+              "source": "SALESORDERITEM",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "PRODUCTID",
+              "source": "PRODUCTID",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "QUANTITY",
+              "source": "QUANTITY",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "QUANTITYUNIT",
+              "source": "QUANTITYUNIT",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            }
+          ]
+        },
+        {
+          "node": "sap.hana.democontent.epm.models::PROD",
+          "mappings": [
+            {
+              "target": "TYPECODE",
+              "source": "PRODUCT_TYPECODE",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "CATEGORY",
+              "source": "PRODUCT_CATEGORY",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "PRODUCTNAME",
+              "source": "PRODUCT_NAME",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "PRODUCTDESC",
+              "source": "PRODUCT_DESCRIPTION",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "PRODUCTID",
+              "source": "PRODUCTID",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            }
+          ]
+        }
+      ],
+      "viewAttributes": [
+        {
+          "id": "SALESORDERID"
+        },
+        {
+          "id": "PARTNERID"
+        },
+        {
+          "id": "LIFECYCLESTATUS"
+        },
+        {
+          "id": "CURRENCY"
+        },
+        {
+          "id": "GROSSAMOUNT"
+        },
+        {
+          "id": "SALESORDERITEM"
+        },
+        {
+          "id": "PRODUCTID"
+        },
+        {
+          "id": "QUANTITY"
+        },
+        {
+          "id": "QUANTITYUNIT"
+        },
+        {
+          "id": "TYPECODE"
+        },
+        {
+          "id": "CATEGORY"
+        },
+        {
+          "id": "PRODUCTNAME"
+        },
+        {
+          "id": "PRODUCTDESC"
+        }
+      ],
+      "calculatedAttributes": [],
+      "filter": null,
+      "join": {
+        "joinType": "inner",
+        "joinAttributes": [
+          "PRODUCTID"
+        ]
+      },
+      "aggregation": null,
+      "union": null,
+      "rank": null,
+      "extras": {
+        "@joinType": "inner"
+      }
+    },
+    {
+      "id": "Partner",
+      "type": "JoinView",
+      "inputs": [
+        {
+          "node": "Product",
+          "mappings": [
+            {
+              "target": "SALESORDERID",
+              "source": "SALESORDERID",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "PARTNERID",
+              "source": "PARTNERID",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "LIFECYCLESTATUS",
+              "source": "LIFECYCLESTATUS",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "CURRENCY",
+              "source": "CURRENCY",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "GROSSAMOUNT",
+              "source": "GROSSAMOUNT",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "SALESORDERITEM",
+              "source": "SALESORDERITEM",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "PRODUCTID",
+              "source": "PRODUCTID",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "QUANTITY",
+              "source": "QUANTITY",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "QUANTITYUNIT",
+              "source": "QUANTITYUNIT",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "TYPECODE",
+              "source": "TYPECODE",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "CATEGORY",
+              "source": "CATEGORY",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "PRODUCTNAME",
+              "source": "PRODUCTNAME",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "PRODUCTDESC",
+              "source": "PRODUCTDESC",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            }
+          ]
+        },
+        {
+          "node": "sap.hana.democontent.epm.models::BUYER",
+          "mappings": [
+            {
+              "target": "COMPANYNAME",
+              "source": "COMPANYNAME",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "CITY",
+              "source": "CITY",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "POSTALCODE",
+              "source": "POSTALCODE",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "PARTNERID",
+              "source": "PARTNERID",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            }
+          ]
+        }
+      ],
+      "viewAttributes": [
+        {
+          "id": "SALESORDERID"
+        },
+        {
+          "id": "PARTNERID"
+        },
+        {
+          "id": "LIFECYCLESTATUS"
+        },
+        {
+          "id": "CURRENCY"
+        },
+        {
+          "id": "GROSSAMOUNT"
+        },
+        {
+          "id": "SALESORDERITEM"
+        },
+        {
+          "id": "PRODUCTID"
+        },
+        {
+          "id": "QUANTITY"
+        },
+        {
+          "id": "QUANTITYUNIT"
+        },
+        {
+          "id": "TYPECODE"
+        },
+        {
+          "id": "CATEGORY"
+        },
+        {
+          "id": "PRODUCTNAME"
+        },
+        {
+          "id": "PRODUCTDESC"
+        },
+        {
+          "id": "COMPANYNAME"
+        },
+        {
+          "id": "CITY"
+        },
+        {
+          "id": "POSTALCODE"
+        }
+      ],
+      "calculatedAttributes": [],
+      "filter": null,
+      "join": {
+        "joinType": "inner",
+        "joinAttributes": [
+          "PARTNERID"
+        ]
+      },
+      "aggregation": null,
+      "union": null,
+      "rank": null,
+      "extras": {
+        "@joinType": "inner"
+      }
+    }
+  ],
+  "logicalModel": {
+    "topNode": "Partner",
+    "attributes": [
+      {
+        "id": "SALESORDERID",
+        "key": true,
+        "order": "1",
+        "keyMapping": {
+          "columnObjectName": "Partner",
+          "columnName": "SALESORDERID"
+        }
+      },
+      {
+        "id": "PARTNERID",
+        "key": false,
+        "order": "2",
+        "keyMapping": {
+          "columnObjectName": "Partner",
+          "columnName": "PARTNERID"
+        }
+      },
+      {
+        "id": "LIFECYCLESTATUS",
+        "key": false,
+        "order": "3",
+        "keyMapping": {
+          "columnObjectName": "Partner",
+          "columnName": "LIFECYCLESTATUS"
+        }
+      },
+      {
+        "id": "CURRENCY",
+        "key": false,
+        "order": "4",
+        "keyMapping": {
+          "columnObjectName": "Partner",
+          "columnName": "CURRENCY"
+        }
+      },
+      {
+        "id": "GROSSAMOUNT",
+        "key": false,
+        "order": "5",
+        "keyMapping": {
+          "columnObjectName": "Partner",
+          "columnName": "GROSSAMOUNT"
+        }
+      },
+      {
+        "id": "SALESORDERITEM",
+        "key": true,
+        "order": "6",
+        "keyMapping": {
+          "columnObjectName": "Partner",
+          "columnName": "SALESORDERITEM"
+        }
+      },
+      {
+        "id": "PRODUCTID",
+        "key": false,
+        "order": "7",
+        "keyMapping": {
+          "columnObjectName": "Partner",
+          "columnName": "PRODUCTID"
+        }
+      },
+      {
+        "id": "QUANTITY",
+        "key": false,
+        "order": "8",
+        "keyMapping": {
+          "columnObjectName": "Partner",
+          "columnName": "QUANTITY"
+        }
+      },
+      {
+        "id": "QUANTITYUNIT",
+        "key": false,
+        "order": "9",
+        "keyMapping": {
+          "columnObjectName": "Partner",
+          "columnName": "QUANTITYUNIT"
+        }
+      },
+      {
+        "id": "TYPECODE",
+        "key": false,
+        "order": "10",
+        "keyMapping": {
+          "columnObjectName": "Partner",
+          "columnName": "TYPECODE"
+        }
+      },
+      {
+        "id": "CATEGORY",
+        "key": false,
+        "order": "11",
+        "keyMapping": {
+          "columnObjectName": "Partner",
+          "columnName": "CATEGORY"
+        }
+      },
+      {
+        "id": "PRODUCTNAME",
+        "key": false,
+        "order": "12",
+        "keyMapping": {
+          "columnObjectName": "Partner",
+          "columnName": "PRODUCTNAME"
+        }
+      },
+      {
+        "id": "PRODUCTDESC",
+        "key": false,
+        "order": "13",
+        "keyMapping": {
+          "columnObjectName": "Partner",
+          "columnName": "PRODUCTDESC"
+        }
+      },
+      {
+        "id": "COMPANYNAME",
+        "key": false,
+        "order": "14",
+        "keyMapping": {
+          "columnObjectName": "Partner",
+          "columnName": "COMPANYNAME"
+        }
+      },
+      {
+        "id": "CITY",
+        "key": false,
+        "order": "15",
+        "keyMapping": {
+          "columnObjectName": "Partner",
+          "columnName": "CITY"
+        }
+      },
+      {
+        "id": "POSTALCODE",
+        "key": false,
+        "order": "16",
+        "keyMapping": {
+          "columnObjectName": "Partner",
+          "columnName": "POSTALCODE"
+        }
+      }
+    ],
+    "calculatedAttributes": [],
+    "baseMeasures": [],
+    "calculatedMeasures": [],
+    "restrictedMeasures": []
+  }
+}

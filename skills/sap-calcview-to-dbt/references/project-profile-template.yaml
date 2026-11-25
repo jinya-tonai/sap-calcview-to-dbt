@@ -13,6 +13,9 @@ outputs:
   parser_out: output        # inventory + IR (per view: <view>/inventory/*.csv)
   sql_out: output_sql       # flat SQL files (MVP-2 style)
   dbt_out: dbt_project      # generated dbt project
+  inventory_out: inventory  # inventory embedded in the dbt project
+                            # (relative to dbt_out) — a shared team
+                            # artifact, committed with the models
 
 landing:
   database: "RAW"     # dummy: Snowflake database where source tables land

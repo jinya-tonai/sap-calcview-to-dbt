@@ -1,0 +1,5 @@
+location,kind,id,formula,functions,unknown_functions,variables,status
+Proj_Header,calculated_column,DAYS_OPEN,"daysbetween(date(""ERDAT""), now())",date|daysbetween|now,,,auto_candidate
+Proj_Header,filter,-,"""VKORG"" = '1000' and ""ERDAT"" >= $$IP_FROM_DATE$$",,,IP_FROM_DATE,auto_candidate
+Proj_Item,calculated_column,LINE_AMOUNT,"""KWMENG"" * ""NETPR""",,,,auto_candidate
+logicalModel,calculated_attribute,GROSS_PER_ITEM,"""GROSS"" / 10",,,,auto_candidate

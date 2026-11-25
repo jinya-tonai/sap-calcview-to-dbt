@@ -1,0 +1,575 @@
+{
+  "sourceFile": "SYNTHETIC_ALL_NODES.hdbcalculationview",
+  "scenario": {
+    "id": "bw.repro::CV_SALES_BY_ORG",
+    "type": "TREE_BASED",
+    "dataCategory": "CUBE",
+    "outputViewType": "Aggregation",
+    "defaultClient": "$$client$$",
+    "enforceSqlExecution": "true",
+    "schemaVersion": "3.0",
+    "description": "Sales by org (synthetic BW reproduction target)"
+  },
+  "dataSources": [
+    {
+      "id": "SD.VBAK",
+      "resourceUri": "SD.VBAK",
+      "type": "DATA_BASE_TABLE",
+      "mappedTable": null
+    },
+    {
+      "id": "SD.VBAP",
+      "resourceUri": "SD.VBAP",
+      "type": "DATA_BASE_TABLE",
+      "mappedTable": null
+    },
+    {
+      "id": "SD.LEGACY",
+      "resourceUri": "SD.LEGACY",
+      "type": "DATA_BASE_TABLE",
+      "mappedTable": null
+    }
+  ],
+  "variables": [
+    {
+      "id": "IP_FROM_DATE",
+      "dataType": "DATE",
+      "parameter": "true",
+      "mandatory": "true",
+      "defaultValue": "2024-01-01",
+      "rawProperties": {
+        "id": "IP_FROM_DATE",
+        "datatype": "DATE",
+        "parameter": "true",
+        "mandatory": "true"
+      },
+      "usedIn": [
+        "Proj_Header.-"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "Proj_Header",
+      "type": "ProjectionView",
+      "inputs": [
+        {
+          "node": "SD.VBAK",
+          "mappings": [
+            {
+              "target": "VBELN",
+              "source": "VBELN",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "VKORG",
+              "source": "VKORG",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "ERDAT",
+              "source": "ERDAT",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            }
+          ]
+        }
+      ],
+      "viewAttributes": [
+        {
+          "id": "VBELN"
+        },
+        {
+          "id": "VKORG"
+        },
+        {
+          "id": "ERDAT"
+        },
+        {
+          "id": "DAYS_OPEN"
+        }
+      ],
+      "calculatedAttributes": [
+        {
+          "id": "DAYS_OPEN",
+          "formula": "daysbetween(date(\"ERDAT\"), now())",
+          "dataType": null
+        }
+      ],
+      "filter": {
+        "expression": "\"VKORG\" = '1000' and \"ERDAT\" >= $$IP_FROM_DATE$$"
+      },
+      "join": null,
+      "aggregation": null,
+      "union": null,
+      "rank": null,
+      "extras": {}
+    },
+    {
+      "id": "Proj_Item",
+      "type": "ProjectionView",
+      "inputs": [
+        {
+          "node": "SD.VBAP",
+          "mappings": [
+            {
+              "target": "VBELN",
+              "source": "VBELN",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "MATNR",
+              "source": "MATNR",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "KWMENG",
+              "source": "KWMENG",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "NETPR",
+              "source": "NETPR",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            }
+          ]
+        }
+      ],
+      "viewAttributes": [
+        {
+          "id": "VBELN"
+        },
+        {
+          "id": "MATNR"
+        },
+        {
+          "id": "LINE_AMOUNT"
+        }
+      ],
+      "calculatedAttributes": [
+        {
+          "id": "LINE_AMOUNT",
+          "formula": "\"KWMENG\" * \"NETPR\"",
+          "dataType": null
+        }
+      ],
+      "filter": null,
+      "join": null,
+      "aggregation": null,
+      "union": null,
+      "rank": null,
+      "extras": {}
+    },
+    {
+      "id": "Join_Main",
+      "type": "JoinView",
+      "inputs": [
+        {
+          "node": "Proj_Header",
+          "mappings": [
+            {
+              "target": "VBELN",
+              "source": "VBELN",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "VKORG",
+              "source": "VKORG",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            }
+          ]
+        },
+        {
+          "node": "Proj_Item",
+          "mappings": [
+            {
+              "target": "VBELN",
+              "source": "VBELN",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "MATNR",
+              "source": "MATNR",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "LINE_AMOUNT",
+              "source": "LINE_AMOUNT",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            }
+          ]
+        }
+      ],
+      "viewAttributes": [
+        {
+          "id": "VBELN"
+        },
+        {
+          "id": "VKORG"
+        },
+        {
+          "id": "MATNR"
+        },
+        {
+          "id": "LINE_AMOUNT"
+        }
+      ],
+      "calculatedAttributes": [],
+      "filter": null,
+      "join": {
+        "joinType": "leftOuter",
+        "joinAttributes": [
+          "VBELN"
+        ]
+      },
+      "aggregation": null,
+      "union": null,
+      "rank": null,
+      "extras": {
+        "@joinType": "leftOuter"
+      }
+    },
+    {
+      "id": "Agg_Sales",
+      "type": "AggregationView",
+      "inputs": [
+        {
+          "node": "Join_Main",
+          "mappings": [
+            {
+              "target": "VKORG",
+              "source": "VKORG",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "MATNR",
+              "source": "MATNR",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "GROSS",
+              "source": "LINE_AMOUNT",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            }
+          ]
+        }
+      ],
+      "viewAttributes": [
+        {
+          "id": "VKORG"
+        },
+        {
+          "id": "MATNR"
+        },
+        {
+          "id": "GROSS",
+          "aggregationType": "sum"
+        }
+      ],
+      "calculatedAttributes": [],
+      "filter": null,
+      "join": null,
+      "aggregation": {
+        "measures": [
+          {
+            "column": "GROSS",
+            "aggregationType": "sum"
+          }
+        ]
+      },
+      "union": null,
+      "rank": null,
+      "extras": {}
+    },
+    {
+      "id": "Proj_Legacy",
+      "type": "ProjectionView",
+      "inputs": [
+        {
+          "node": "SD.LEGACY",
+          "mappings": [
+            {
+              "target": "VKORG",
+              "source": "VKORG",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "MATNR",
+              "source": "MATNR",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "GROSS",
+              "source": "AMOUNT",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "SOURCE_KBN",
+              "source": null,
+              "mappingType": "ConstantMapping",
+              "constantValue": "LEGACY"
+            }
+          ]
+        }
+      ],
+      "viewAttributes": [
+        {
+          "id": "VKORG"
+        },
+        {
+          "id": "MATNR"
+        },
+        {
+          "id": "GROSS"
+        },
+        {
+          "id": "SOURCE_KBN"
+        }
+      ],
+      "calculatedAttributes": [],
+      "filter": null,
+      "join": null,
+      "aggregation": null,
+      "union": null,
+      "rank": null,
+      "extras": {}
+    },
+    {
+      "id": "Union_All",
+      "type": "UnionView",
+      "inputs": [
+        {
+          "node": "Agg_Sales",
+          "mappings": [
+            {
+              "target": "VKORG",
+              "source": "VKORG",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "MATNR",
+              "source": "MATNR",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "GROSS",
+              "source": "GROSS",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "SOURCE_KBN",
+              "source": null,
+              "mappingType": "ConstantMapping",
+              "constantValue": "BW"
+            }
+          ]
+        },
+        {
+          "node": "Proj_Legacy",
+          "mappings": [
+            {
+              "target": "VKORG",
+              "source": "VKORG",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "MATNR",
+              "source": "MATNR",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "GROSS",
+              "source": "GROSS",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "SOURCE_KBN",
+              "source": "SOURCE_KBN",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            }
+          ]
+        }
+      ],
+      "viewAttributes": [
+        {
+          "id": "VKORG"
+        },
+        {
+          "id": "MATNR"
+        },
+        {
+          "id": "GROSS"
+        },
+        {
+          "id": "SOURCE_KBN"
+        }
+      ],
+      "calculatedAttributes": [],
+      "filter": null,
+      "join": null,
+      "aggregation": null,
+      "union": {
+        "inputCount": 2
+      },
+      "rank": null,
+      "extras": {}
+    },
+    {
+      "id": "Rank_Top",
+      "type": "RankView",
+      "inputs": [
+        {
+          "node": "Union_All",
+          "mappings": [
+            {
+              "target": "VKORG",
+              "source": "VKORG",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "MATNR",
+              "source": "MATNR",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "GROSS",
+              "source": "GROSS",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            },
+            {
+              "target": "SOURCE_KBN",
+              "source": "SOURCE_KBN",
+              "mappingType": "AttributeMapping",
+              "constantValue": null
+            }
+          ]
+        }
+      ],
+      "viewAttributes": [
+        {
+          "id": "VKORG"
+        },
+        {
+          "id": "MATNR"
+        },
+        {
+          "id": "GROSS"
+        },
+        {
+          "id": "SOURCE_KBN"
+        }
+      ],
+      "calculatedAttributes": [],
+      "filter": null,
+      "join": null,
+      "aggregation": null,
+      "union": null,
+      "rank": {
+        "rankPartition": {
+          "attribute": "VKORG"
+        },
+        "rankOrder": {
+          "attribute": "GROSS",
+          "direction": "descending"
+        }
+      },
+      "extras": {
+        "@rankThreshold": "10",
+        "rankPartition": {
+          "attribute": "VKORG"
+        },
+        "rankOrder": {
+          "attribute": "GROSS",
+          "direction": "descending"
+        }
+      }
+    }
+  ],
+  "logicalModel": {
+    "topNode": "Rank_Top",
+    "attributes": [
+      {
+        "id": "VKORG",
+        "key": true,
+        "order": "1",
+        "keyMapping": {
+          "columnObjectName": "Rank_Top",
+          "columnName": "VKORG"
+        }
+      },
+      {
+        "id": "MATNR",
+        "key": false,
+        "order": "2",
+        "keyMapping": {
+          "columnObjectName": "Rank_Top",
+          "columnName": "MATNR"
+        }
+      },
+      {
+        "id": "SOURCE_KBN",
+        "key": false,
+        "order": "3",
+        "keyMapping": {
+          "columnObjectName": "Rank_Top",
+          "columnName": "SOURCE_KBN"
+        }
+      }
+    ],
+    "calculatedAttributes": [
+      {
+        "id": "GROSS_PER_ITEM",
+        "order": null,
+        "formula": "\"GROSS\" / 10"
+      }
+    ],
+    "baseMeasures": [
+      {
+        "id": "GROSS",
+        "order": "1",
+        "aggregationType": "sum",
+        "measureType": "simple",
+        "measureMapping": {
+          "columnObjectName": "Rank_Top",
+          "columnName": "GROSS"
+        }
+      }
+    ],
+    "calculatedMeasures": [],
+    "restrictedMeasures": [
+      {
+        "id": "GROSS_BW_ONLY",
+        "order": "2",
+        "aggregationType": "sum",
+        "measureType": "restricted"
+      }
+    ]
+  }
+}

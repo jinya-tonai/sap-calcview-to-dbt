@@ -1,0 +1,5 @@
+datasource_id,resource_uri,type,mapped_table
+SO.Header,SO.Header,,
+SO.Item,SO.Item,,
+sap.hana.democontent.epm.models::PROD,sap.hana.democontent.epm.models::PROD,,
+sap.hana.democontent.epm.models::BUYER,sap.hana.democontent.epm.models::BUYER,,

@@ -1,0 +1,4 @@
+datasource_id,resource_uri,type,mapped_table
+SD.VBAK,SD.VBAK,DATA_BASE_TABLE,
+SD.VBAP,SD.VBAP,DATA_BASE_TABLE,
+SD.LEGACY,SD.LEGACY,DATA_BASE_TABLE,
