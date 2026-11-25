@@ -344,7 +344,8 @@ def build_project(files: list[Path], out: Path, mapping_rows: dict,
                                 "nodes": len(ir["nodes"]),
                                 "splitToInt": len(int_models),
                                 "todoItems": len(todos)})
-        issues_by_view[vid] = [(categorize(t), t) for t in todos]
+        issues_by_view[vid] = [(categorize(t), t, None) for t in todos
+                               if categorize(t) != "未知の関数"]
         # marts yml entry with key tests
         lm = ir["logicalModel"] or {}
         keys = [a["id"] for a in lm.get("attributes", []) if a.get("key")]
@@ -390,34 +391,64 @@ def build_project(files: list[Path], out: Path, mapping_rows: dict,
     report["inventoryViews"] = len(files)
 
     # ISSUES.md: one readable, checkbox-style backlog for the team.
-    # Merges the generator TODOs with each view's unsupported.md items.
+    # Derived from the inventory itself wherever the CSVs cover the
+    # item (unknown functions come from expressions.csv, so counts
+    # always match the CSV), plus generator TODOs and unsupported.md
+    # items for the rest. Every entry references its inventory file.
+    ref_for = {"マッピング未対応": "datasources.csv",
+               "未知の関数": "expressions.csv",
+               "要検証の変換": "expressions.csv",
+               "結合セマンティクス": "nodes.csv",
+               "制限メジャー": "unsupported.md"}
     for ir in irs:
         vid = ir["scenario"]["id"]
-        upath = (out / inv_rel / slugify(vid) / "inventory"
-                 / "unsupported.md")
+        slug = slugify(vid)
+        base = out / inv_rel / slug / "inventory"
+        existing = issues_by_view.setdefault(vid, [])
+        # attach inventory references to generator-derived entries
+        issues_by_view[vid] = existing = [
+            (c, t, f"{inv_rel}/{slug}/inventory/{ref_for[c]}"
+             if c in ref_for else f"{inv_rel}/{slug}/summary.md")
+            for c, t, _ in existing]
+        # unknown functions: from expressions.csv (the inventory is
+        # the source of truth; generator TODOs count translation
+        # events and would double-count split views)
+        epath = base / "expressions.csv"
+        if epath.exists():
+            with epath.open(newline="", encoding="utf-8") as fh:
+                for row in csv.DictReader(fh):
+                    for fn in (row.get("unknown_functions") or "").split("|"):
+                        if fn:
+                            existing.append((
+                                "未知の関数",
+                                f"{row['location']}.{row['id']}: "
+                                f"unknown function {fn}() — "
+                                f"{(row.get('formula') or '')[:80]}"
+                                f"{'…' if len(row.get('formula') or '') > 80 else ''}",
+                                f"{inv_rel}/{slug}/inventory/expressions.csv"))
+        upath = base / "unsupported.md"
         if not upath.exists():
             continue
         labels = []
-        existing = issues_by_view.setdefault(vid, [])
         for line in upath.read_text(encoding="utf-8").splitlines():
             m = re.match(r"- \*\*(.+?)\*\*", line)
             if not m:
                 continue
             label = m.group(1)
             low = label.lower()
-            # skip items the generator TODOs already cover per expression
             if low.startswith("unknown function"):
-                continue
+                continue  # covered by expressions.csv above
             if ("script_based" in low or "sqlscriptview" in low) and \
-                    any(c == "SCRIPT_BASED" for c, _ in existing):
+                    any(c == "SCRIPT_BASED" for c, _, _ in existing):
                 continue
             labels.append(label)
-            existing.append((label, line[2:].strip()))
+            existing.append((label, line[2:].strip(),
+                             f"{inv_rel}/{slug}/inventory/unsupported.md"))
         if any("Restricted measure" in lb for lb in labels):
             # the same item also appears as a generator TODO; keep the
             # unsupported.md version (it carries the fuller description)
             issues_by_view[vid] = [
-                (c, t) for c, t in issues_by_view[vid]
+                (c, t, r) for c, t, r in issues_by_view[vid]
                 if not (c == "制限メジャー"
                         and "restricted measure" in t.lower())]
     total_issues = sum(len(v) for v in issues_by_view.values())
@@ -449,7 +480,8 @@ def categorize(todo: str) -> str:
 
 def render_issues(issues_by_view: dict, total_views: int) -> str:
     from collections import Counter
-    counts = Counter(c for items in issues_by_view.values() for c, _ in items)
+    counts = Counter(c for items in issues_by_view.values()
+                     for c, _, _ in items)
     total = sum(counts.values())
     with_issues = sum(1 for v in issues_by_view.values() if v)
     lines = [
@@ -477,8 +509,9 @@ def render_issues(issues_by_view: dict, total_views: int) -> str:
             continue
         lines.append(f"### {vid}")
         lines.append("")
-        for cat, text in items:
-            lines.append(f"- [ ] [{cat}] {text}")
+        for cat, text, ref in items:
+            suffix = f" （参照: {ref}）" if ref else ""
+            lines.append(f"- [ ] [{cat}] {text}{suffix}")
         lines.append("")
     return "\n".join(lines)
 

@@ -18,14 +18,14 @@
 
 ### bw.repro::CV_SALES_BY_ORG
 
-- [ ] [マッピング未対応] SD.VBAK: data source not in mapping table; placeholder table name used
-- [ ] [マッピング未対応] SD.VBAP: data source not in mapping table; placeholder table name used
-- [ ] [マッピング未対応] SD.LEGACY: data source not in mapping table; placeholder table name used
-- [ ] [Restricted measure] **Restricted measure** (logicalModel.GROSS_BW_ONLY): Filtered measure; manual implementation (spec 9)
+- [ ] [マッピング未対応] SD.VBAK: data source not in mapping table; placeholder table name used （参照: inventory/CV_SALES_BY_ORG/inventory/datasources.csv）
+- [ ] [マッピング未対応] SD.VBAP: data source not in mapping table; placeholder table name used （参照: inventory/CV_SALES_BY_ORG/inventory/datasources.csv）
+- [ ] [マッピング未対応] SD.LEGACY: data source not in mapping table; placeholder table name used （参照: inventory/CV_SALES_BY_ORG/inventory/datasources.csv）
+- [ ] [Restricted measure] **Restricted measure** (logicalModel.GROSS_BW_ONLY): Filtered measure; manual implementation (spec 9) （参照: inventory/CV_SALES_BY_ORG/inventory/unsupported.md）
 
 ### sap.hana.democontent.epm.models::SALES_ORDER_WORKLIST
 
-- [ ] [マッピング未対応] SO.Header: data source not in mapping table; placeholder table name used
-- [ ] [マッピング未対応] SO.Item: data source not in mapping table; placeholder table name used
-- [ ] [マッピング未対応] sap.hana.democontent.epm.models::PROD: data source not in mapping table; placeholder table name used
-- [ ] [マッピング未対応] sap.hana.democontent.epm.models::BUYER: data source not in mapping table; placeholder table name used
+- [ ] [マッピング未対応] SO.Header: data source not in mapping table; placeholder table name used （参照: inventory/SALES_ORDER_WORKLIST/inventory/datasources.csv）
+- [ ] [マッピング未対応] SO.Item: data source not in mapping table; placeholder table name used （参照: inventory/SALES_ORDER_WORKLIST/inventory/datasources.csv）
+- [ ] [マッピング未対応] sap.hana.democontent.epm.models::PROD: data source not in mapping table; placeholder table name used （参照: inventory/SALES_ORDER_WORKLIST/inventory/datasources.csv）
+- [ ] [マッピング未対応] sap.hana.democontent.epm.models::BUYER: data source not in mapping table; placeholder table name used （参照: inventory/SALES_ORDER_WORKLIST/inventory/datasources.csv）
